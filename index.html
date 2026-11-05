@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0e1620">
+<link rel="icon" href="icon-192.png">
+<title>Forex sessiyalar va Kill Zone</title>
+<style>
+:root{--bg:#f3f5f7;--card:#fff;--ink:#14202b;--mute:#5d6b78;--line:#d9e0e6;--on:#0a8f6a;--soft:#e4f4ee;
+--asia:#7a5cd6;--lon:#d98a00;--nyam:#1f7ae0;--nypm:#d6456b;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1620;--card:#16222f;--ink:#e8eef4;--mute:#8fa1b2;--line:#263646;--on:#3ddc9f;--soft:#143228;
+--asia:#a58bff;--lon:#ffb43b;--nyam:#5aa2ff;--nypm:#ff7a9c}}
+:root[data-theme="dark"]{--bg:#0e1620;--card:#16222f;--ink:#e8eef4;--mute:#8fa1b2;--line:#263646;--on:#3ddc9f;--soft:#143228;--asia:#a58bff;--lon:#ffb43b;--nyam:#5aa2ff;--nypm:#ff7a9c}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 "Segoe UI",system-ui,Roboto,sans-serif}
+main{max-width:640px;margin:0 auto;padding:16px}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:14px}
+h1{font-size:1.25rem;margin:0;font-weight:700}
+.clock{font-size:2.6rem;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1}
+.sub{color:var(--mute);font-size:.85rem;margin-top:4px}
+select{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit;font-size:.85rem;max-width:48%}
+section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
+h2{font-size:1rem;margin:0 0 10px}
+.tl{position:relative}
+.row{display:flex;align-items:center;gap:8px;margin:6px 0}
+.row b{width:64px;font-size:.78rem;font-weight:600;flex:none}
+.bar{position:relative;flex:1;height:16px;background:var(--bg);border-radius:4px}
+.seg{position:absolute;top:0;bottom:0;border-radius:4px;opacity:.9}
+.now{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);z-index:2}
+.axis{display:flex;margin-left:72px;color:var(--mute);font-size:.68rem;justify-content:space-between;font-variant-numeric:tabular-nums}
+.kz{display:flex;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.kz:first-of-type{border-top:0}
+.dot{width:10px;align-self:stretch;border-radius:5px;flex:none}
+.kz .i{flex:1}
+.kz .n{font-weight:700}
+.kz .t{color:var(--mute);font-size:.85rem;font-variant-numeric:tabular-nums}
+.st{font-size:.82rem;font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+.st.on{color:var(--on)}
+.st small{display:block;color:var(--mute);font-weight:400}
+.pill{display:inline-block;background:var(--soft);color:var(--on);border-radius:99px;padding:1px 8px;font-size:.75rem;font-weight:700;margin-left:6px}
+.foot{color:var(--mute);font-size:.78rem;margin:0}
+:focus-visible{outline:2px solid var(--nyam);outline-offset:2px}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div>
+    <div class="clock" id="clock">--:--:--</div>
+    <div class="sub" id="sub"></div>
+  </div>
+  <select id="tz" aria-label="Vaqt zonasi"></select>
+</header>
+
+<section>
+  <h2>24 soatlik jadval (New York vaqti)</h2>
+  <div class="tl" id="tl"></div>
+  <div class="axis"><span>00</span><span>04</span><span>08</span><span>12</span><span>16</span><span>20</span><span>24</span></div>
+</section>
+
+<section>
+  <h2>Kill zonalar <span id="kzlabel" class="sub"></span></h2>
+  <div id="kz"></div>
+</section>
+
+<section>
+  <h2>Bozor sessiyalari</h2>
+  <div id="ss"></div>
+</section>
+
+<p class="foot">Kill zone vaqtlari New York vaqti bo‘yicha (yozgi/qishki vaqt avtomatik hisoblanadi). Ma’lumot ta’lim uchun, moliyaviy maslahat emas.</p>
+</main>
+
+<script>
+const NY="America/New_York";
+const KZ=[
+ {n:"Asian kill zone",s:20*60,e:24*60,c:"--asia"},
+ {n:"London kill zone",s:2*60,e:5*60,c:"--lon"},
+ {n:"New York AM kill zone",s:7*60,e:10*60,c:"--nyam"},
+ {n:"New York PM kill zone",s:13*60+30,e:16*60,c:"--nypm"}
+];
+const SS=[
+ {n:"Sydney",tz:"Australia/Sydney",s:7*60,e:16*60},
+ {n:"Tokyo",tz:"Asia/Tokyo",s:9*60,e:18*60},
+ {n:"London",tz:"Europe/London",s:8*60,e:17*60},
+ {n:"New York",tz:NY,s:8*60,e:17*60}
+];
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(2,"0");
+const hm=m=>{m=((m%1440)+1440)%1440;return pad(Math.floor(m/60))+":"+pad(m%60)};
+const parts=(d,tz)=>{const f=new Intl.DateTimeFormat("en-GB",{timeZone:tz,hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h23"}).formatToParts(d);
+ const g=t=>+f.find(p=>p.type===t).value;return g("hour")*60+g("minute")+g("second")/60};
+const dur=m=>{m=Math.max(0,Math.ceil(m));const h=Math.floor(m/60);return h?h+" soat "+pad(m%60)+" daq":m+" daq"};
+const inRange=(m,s,e)=>m>=s&&m<e;
+
+// timezone selector
+const dev=Intl.DateTimeFormat().resolvedOptions().timeZone;
+const zones=[[dev,"Qurilma: "+dev],["Asia/Tashkent","Toshkent"],[NY,"New York"],["Europe/London","London"],["Asia/Dubai","Dubay"],["Asia/Tokyo","Tokio"]];
+const seen=new Set();
+zones.forEach(([v,l])=>{if(seen.has(v))return;seen.add(v);const o=document.createElement("option");o.value=v;o.textContent=l;$("tz").appendChild(o)});
+let tz=dev;
+try{const s=sessionStorage.getItem("tz");if(s&&seen.has(s)){tz=s;$("tz").value=s}}catch(e){}
+$("tz").onchange=e=>{tz=e.target.value;try{sessionStorage.setItem("tz",tz)}catch(e){}tick()};
+
+function segs(s,e){return e>1440?[[s,1440],[0,e-1440]]:[[s,e]]}
+
+// build timeline once
+const tl=$("tl");
+function row(label,list,color){
+ const r=document.createElement("div");r.className="row";
+ r.innerHTML='<b>'+label+'</b><div class="bar"></div>';
+ const bar=r.lastChild;
+ list.forEach(([s,e])=>{const d=document.createElement("div");d.className="seg";d.style.left=s/14.4+"%";d.style.width=(e-s)/14.4+"%";d.style.background="var("+color+")";bar.appendChild(d)});
+ tl.appendChild(r);return bar;
+}
+let nowEls=[],sessRows=[];
+function buildTimeline(){
+ tl.innerHTML="";nowEls=[];
+ const d=new Date(),ny=parts(d,NY);
+ const bars=[];
+ SS.forEach((x,i)=>{
+  const shift=((ny-parts(d,x.tz))%1440+1440)%1440;
+  const s=(x.s+shift)%1440,len=x.e-x.s;
+  bars.push(row(x.n,segs(s,s+len),["--asia","--lon","--lon","--nyam"][i]));
+ });
+ KZ.forEach(k=>bars.push(row(k.n.replace(" kill zone","").replace("New York","NY"),[[k.s,k.e]],k.c)));
+ bars.forEach(b=>{const n=document.createElement("div");n.className="now";b.appendChild(n);nowEls.push(n)});
+}
+
+function tick(){
+ const d=new Date();
+ const loc=parts(d,tz),ny=parts(d,NY);
+ const sec=Math.floor((loc%1)*60);
+ $("clock").textContent=hm(Math.floor(loc))+":"+pad(sec);
+ const nyh=Math.floor(ny);
+ $("sub").textContent="New York: "+hm(nyh)+":"+pad(Math.floor((ny%1)*60));
+ nowEls.forEach(n=>n.style.left=(ny/14.4)+"%");
+ const diff=loc-ny;
+ $("kzlabel").textContent="(sizning vaqtingizda)";
+ $("kz").innerHTML=KZ.map(k=>{
+  const act=inRange(ny,k.s,k.e);
+  let status;
+  if(act){status='<div class="st on">Faol<span class="pill">LIVE</span><small>tugashiga '+dur(k.e-ny)+'</small></div>'}
+  else{const wait=((k.s-ny)%1440+1440)%1440;status='<div class="st">Boshlanishiga<small>'+dur(wait)+'</small></div>'}
+  return '<div class="kz"><div class="dot" style="background:var('+k.c+')"></div><div class="i"><div class="n">'+k.n+'</div><div class="t">'+hm(k.s+diff)+' – '+hm(k.e+diff)+' &nbsp;·&nbsp; NY '+hm(k.s)+' – '+hm(k.e)+'</div></div>'+status+'</div>';
+ }).join("");
+ $("ss").innerHTML=SS.map(x=>{
+  const m=parts(d,x.tz),open=inRange(m,x.s,x.e);
+  const left=open?x.e-m:((x.s-m)%1440+1440)%1440;
+  const shift=((ny-m)%1440+1440)%1440;
+  const s=(x.s+shift+diff)%1440;
+  return '<div class="kz"><div class="i"><div class="n">'+x.n+'</div><div class="t">'+hm(s)+' – '+hm(s+x.e-x.s)+'</div></div><div class="st'+(open?' on':'')+'">'+(open?'Ochiq':'Yopiq')+'<small>'+(open?'yopilishiga ':'ochilishiga ')+dur(left)+'</small></div></div>';
+ }).join("");
+}
+if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(function(){})}
+buildTimeline();tick();
+setInterval(tick,1000);
+setInterval(buildTimeline,3600000);
+</script>
+</body>
+</html>
