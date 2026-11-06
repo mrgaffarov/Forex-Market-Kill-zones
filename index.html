@@ -6,160 +6,70 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0e1620">
 <link rel="icon" href="icon-192.png">
-<title>Forex sessiyalar va Kill Zone</title>
-<style>
-:root{--bg:#f3f5f7;--card:#fff;--ink:#14202b;--mute:#5d6b78;--line:#d9e0e6;--on:#0a8f6a;--soft:#e4f4ee;
---asia:#7a5cd6;--lon:#d98a00;--nyam:#1f7ae0;--nypm:#d6456b;
-box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1620;--card:#16222f;--ink:#e8eef4;--mute:#8fa1b2;--line:#263646;--on:#3ddc9f;--soft:#143228;
---asia:#a58bff;--lon:#ffb43b;--nyam:#5aa2ff;--nypm:#ff7a9c}}
-:root[data-theme="dark"]{--bg:#0e1620;--card:#16222f;--ink:#e8eef4;--mute:#8fa1b2;--line:#263646;--on:#3ddc9f;--soft:#143228;--asia:#a58bff;--lon:#ffb43b;--nyam:#5aa2ff;--nypm:#ff7a9c}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 "Segoe UI",system-ui,Roboto,sans-serif}
-main{max-width:640px;margin:0 auto;padding:16px}
-header{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:14px}
-h1{font-size:1.25rem;margin:0;font-weight:700}
-.clock{font-size:2.6rem;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1}
-.sub{color:var(--mute);font-size:.85rem;margin-top:4px}
-select{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit;font-size:.85rem;max-width:48%}
-section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
-h2{font-size:1rem;margin:0 0 10px}
-.tl{position:relative}
-.row{display:flex;align-items:center;gap:8px;margin:6px 0}
-.row b{width:64px;font-size:.78rem;font-weight:600;flex:none}
-.bar{position:relative;flex:1;height:16px;background:var(--bg);border-radius:4px}
-.seg{position:absolute;top:0;bottom:0;border-radius:4px;opacity:.9}
-.now{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);z-index:2}
-.axis{display:flex;margin-left:72px;color:var(--mute);font-size:.68rem;justify-content:space-between;font-variant-numeric:tabular-nums}
-.kz{display:flex;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
-.kz:first-of-type{border-top:0}
-.dot{width:10px;align-self:stretch;border-radius:5px;flex:none}
-.kz .i{flex:1}
-.kz .n{font-weight:700}
-.kz .t{color:var(--mute);font-size:.85rem;font-variant-numeric:tabular-nums}
-.st{font-size:.82rem;font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
-.st.on{color:var(--on)}
-.st small{display:block;color:var(--mute);font-weight:400}
-.pill{display:inline-block;background:var(--soft);color:var(--on);border-radius:99px;padding:1px 8px;font-size:.75rem;font-weight:700;margin-left:6px}
-.foot{color:var(--mute);font-size:.78rem;margin:0}
-:focus-visible{outline:2px solid var(--nyam);outline-offset:2px}
-</style>
+<title>Forex Kill Zone</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <main>
 <header>
-  <div>
-    <div class="clock" id="clock">--:--:--</div>
-    <div class="sub" id="sub"></div>
-  </div>
+  <div><div class="clock" id="clock">--:--:--</div><div class="sub" id="sub"></div></div>
   <select id="tz" aria-label="Vaqt zonasi"></select>
 </header>
 
-<section>
-  <h2>24 soatlik jadval (New York vaqti)</h2>
-  <div class="tl" id="tl"></div>
-  <div class="axis"><span>00</span><span>04</span><span>08</span><span>12</span><span>16</span><span>20</span><span>24</span></div>
-</section>
+<div id="home">
+  <div class="ban" id="ban"></div>
+  
+  <section><h2>24 soat (New York vaqti)</h2><div id="tl"></div>
+    <div class="axis"><span>00</span><span>04</span><span>08</span><span>12</span><span>16</span><span>20</span><span>24</span></div><div class="foot" style="margin-top:6px">MO Midnight Open 00:00 · LO London Open 02:00 · NY Open 07:00 (NY vaqti)</div></section>
+  <section><h2>Kill zonalar <span class="sub">(sizning vaqtingizda)</span></h2><div id="kz"></div></section>
+  <section><h2>Bozor sessiyalari</h2><div class="foot" style="margin:-4px 0 6px">Osiyo sessiyasi — Tokio (Sydney ham shu vaqtda ochiladi). Soatlarni Sozlamada o‘zgartirasiz.</div><div id="ss"></div></section>
+</div>
 
-<section>
-  <h2>Kill zonalar <span id="kzlabel" class="sub"></span></h2>
-  <div id="kz"></div>
-</section>
+<div id="jr" class="hide">
+  <section><h2>Yangi savdo</h2>
+    <div class="g">
+      <div><label>Juftlik</label><input id="pair" value="EURUSD" autocapitalize="characters"></div>
+      <div><label>Yo‘nalish</label><select id="side"><option>Buy</option><option>Sell</option></select></div>
+      <div><label>Natija (R, minus bo‘lishi mumkin)</label><input id="res" type="number" step="0.1" inputmode="decimal" placeholder="masalan 2 yoki -1"></div>
+      <div><label>Kill zone</label><div class="t" id="curkz" style="padding:9px 0"></div></div>
+    </div>
+    <label style="margin-top:8px">Teglar (vergul bilan)</label><input id="tags" style="width:100%" placeholder="sweep, FVG, OB, erta kirdim"><label style="margin-top:8px">Izoh</label><input id="note" style="width:100%" placeholder="sweep + MSS ...">
+    <button class="pri" id="add" style="width:100%;margin-top:10px">Saqlash</button>
+  </section>
+  <section><h2>Statistika</h2><div id="stats"></div></section><section id="extra"></section>
+  <section><h2>So‘nggi savdolar</h2><div id="list"></div></section>
+</div>
 
-<section>
-  <h2>Bozor sessiyalari:</h2>
-  <div id="ss"></div>
-</section>
-
-<p class="foot">Kill zone vaqtlari New York vaqti bo‘yicha (yozgi/qishki vaqt avtomatik hisoblanadi).</p>
+<div id="tools" class="hide">
+  <section id="nws"><div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">Yangiliklar <span class="bd hd hide"></span></h2><button id="ntog">+ Qo‘shish</button></div>
+    <div id="nform" class="hide" style="margin-top:10px"><div class="g"><div><label>Sana</label><input id="nd" type="date"></div><div><label>Vaqt (yuqorida tanlangan zonada)</label><input id="ntm" type="time"></div></div>
+    <input id="nt" style="width:100%;margin-top:8px" placeholder="NFP, CPI, FOMC"><button class="pri" id="nadd" style="width:100%;margin-top:8px">Saqlash</button></div>
+    <div id="nlist"></div></section>
+  <section><h2>Risk kalkulyatori</h2><div class="g">
+    <div><label>Balans ($)</label><input id="bal" type="number" inputmode="decimal"></div>
+    <div><label>Risk (%)</label><input id="rk" type="number" step="0.1" inputmode="decimal"></div>
+    <div><label>Stop-loss (pips)</label><input id="sl" type="number" inputmode="decimal"></div>
+    <div><label>1 pip qiymati, 1 lotda ($)</label><input id="pv" type="number" inputmode="decimal"></div></div>
+    <div id="lot" style="margin-top:10px"></div><div class="foot">EURUSD kabi USD juftliklarida 1 lot uchun 1 pip = $10.</div></section>
+  <section><h2>Zaxira</h2><textarea id="bk" placeholder="Zaxira matni shu yerda chiqadi yoki tiklash uchun shu yerga joylang"></textarea>
+    <div class="g" style="margin-top:8px"><button id="exp">Nusxalash</button><button id="imp">Tiklash</button></div><div class="foot" id="bkm">Zaxirani Telegram "Saved messages" ga yuboring.</div></section>
+</div>
+<div id="set" class="hide">
+  <section><h2>Vaqt zonasi (UTC)</h2><label>Boshqa UTC siljishi (−12 … +14)</label><input id="cu" type="number" step="0.5" min="-12" max="14">
+    <div class="foot" style="margin-top:6px">Tepada o‘ng burchakdagi ro‘yxatdan "Boshqa" ni tanlasangiz, shu siljish ishlatiladi. New York yozgi/qishki vaqtga o‘zi o‘tadi (UTC−4 / UTC−5).</div></section>
+  <section><h2>Bozor sessiyalari (shahar vaqtida)</h2><div id="sedit"></div><button id="sreset" style="margin-top:8px">Boshlang‘ich soatlarga qaytarish</button></section>
+  <section><h2>Kill zone vaqtlari (New York vaqti)</h2><div id="edit"></div>
+    <button id="reset" style="margin-top:8px">Boshlang‘ich vaqtlarga qaytarish</button></section>
+  <section><h2>Signal</h2>
+    <div class="sw"><span>Kill zone boshlanganda ovoz va tebranish</span><input type="checkbox" id="snd"></div>
+    <div class="foot">Faqat ilova ochiq turganda ishlaydi.</div>
+    <label style="margin-top:10px">Oldindan ogohlantirish</label><select id="pre"><option value="0">Yo‘q</option><option value="5">5 daqiqa</option><option value="10">10 daqiqa</option><option value="15">15 daqiqa</option></select>
+    <label style="margin-top:10px">Mavzu</label><select id="th"><option value="auto">Avtomatik</option><option value="light">Yorug‘</option><option value="dark">Qorong‘i</option></select></section>
+</div>
+<p class="foot">Ta’lim uchun, moliyaviy maslahat emas. Bozor New York vaqti bilan juma 17:00 da yopilib, yakshanba 17:00 da ochiladi.</p>
 </main>
+<nav id="nav" aria-label="Bo‘limlar"><button data-t="home" class="a"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg><span>Asosiy</span></button><button data-t="jr"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3z"/><path d="M9 9h6M9 13h6"/></svg><span>Jurnal</span></button><button data-t="tools"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 6a4 4 0 005 5l-9 9a2.5 2.5 0 01-3.5-3.5l9-9z"/></svg><span>Asboblar</span><span class="bd hd hide"></span></button><button data-t="set"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg><span>Sozlama</span></button></nav>
 
-<script>
-const NY="America/New_York";
-const KZ=[
- {n:"Asian kill zone",s:20*60,e:24*60,c:"--asia"},
- {n:"London kill zone",s:2*60,e:5*60,c:"--lon"},
- {n:"New York AM kill zone",s:7*60,e:10*60,c:"--nyam"},
- {n:"New York PM kill zone",s:13*60+30,e:16*60,c:"--nypm"}
-];
-const SS=[
- {n:"Sydney",tz:"Australia/Sydney",s:7*60,e:16*60},
- {n:"Tokyo",tz:"Asia/Tokyo",s:9*60,e:18*60},
- {n:"London",tz:"Europe/London",s:8*60,e:17*60},
- {n:"New York",tz:NY,s:8*60,e:17*60}
-];
-const $=id=>document.getElementById(id);
-const pad=n=>String(n).padStart(2,"0");
-const hm=m=>{m=((m%1440)+1440)%1440;return pad(Math.floor(m/60))+":"+pad(m%60)};
-const parts=(d,tz)=>{const f=new Intl.DateTimeFormat("en-GB",{timeZone:tz,hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h23"}).formatToParts(d);
- const g=t=>+f.find(p=>p.type===t).value;return g("hour")*60+g("minute")+g("second")/60};
-const dur=m=>{m=Math.max(0,Math.ceil(m));const h=Math.floor(m/60);return h?h+" soat "+pad(m%60)+" daq":m+" daq"};
-const inRange=(m,s,e)=>m>=s&&m<e;
-
-// timezone selector
-const dev=Intl.DateTimeFormat().resolvedOptions().timeZone;
-const zones=[[dev,"Qurilma: "+dev],["Asia/Tashkent","Toshkent"],[NY,"New York"],["Europe/London","London"],["Asia/Dubai","Dubay"],["Asia/Tokyo","Tokio"]];
-const seen=new Set();
-zones.forEach(([v,l])=>{if(seen.has(v))return;seen.add(v);const o=document.createElement("option");o.value=v;o.textContent=l;$("tz").appendChild(o)});
-let tz=dev;
-try{const s=sessionStorage.getItem("tz");if(s&&seen.has(s)){tz=s;$("tz").value=s}}catch(e){}
-$("tz").onchange=e=>{tz=e.target.value;try{sessionStorage.setItem("tz",tz)}catch(e){}tick()};
-
-function segs(s,e){return e>1440?[[s,1440],[0,e-1440]]:[[s,e]]}
-
-// build timeline once
-const tl=$("tl");
-function row(label,list,color){
- const r=document.createElement("div");r.className="row";
- r.innerHTML='<b>'+label+'</b><div class="bar"></div>';
- const bar=r.lastChild;
- list.forEach(([s,e])=>{const d=document.createElement("div");d.className="seg";d.style.left=s/14.4+"%";d.style.width=(e-s)/14.4+"%";d.style.background="var("+color+")";bar.appendChild(d)});
- tl.appendChild(r);return bar;
-}
-let nowEls=[],sessRows=[];
-function buildTimeline(){
- tl.innerHTML="";nowEls=[];
- const d=new Date(),ny=parts(d,NY);
- const bars=[];
- SS.forEach((x,i)=>{
-  const shift=((ny-parts(d,x.tz))%1440+1440)%1440;
-  const s=(x.s+shift)%1440,len=x.e-x.s;
-  bars.push(row(x.n,segs(s,s+len),["--asia","--lon","--lon","--nyam"][i]));
- });
- KZ.forEach(k=>bars.push(row(k.n.replace(" kill zone","").replace("New York","NY"),[[k.s,k.e]],k.c)));
- bars.forEach(b=>{const n=document.createElement("div");n.className="now";b.appendChild(n);nowEls.push(n)});
-}
-
-function tick(){
- const d=new Date();
- const loc=parts(d,tz),ny=parts(d,NY);
- const sec=Math.floor((loc%1)*60);
- $("clock").textContent=hm(Math.floor(loc))+":"+pad(sec);
- const nyh=Math.floor(ny);
- $("sub").textContent="New York: "+hm(nyh)+":"+pad(Math.floor((ny%1)*60));
- nowEls.forEach(n=>n.style.left=(ny/14.4)+"%");
- const diff=loc-ny;
- $("kzlabel").textContent="(sizning vaqtingizda)";
- $("kz").innerHTML=KZ.map(k=>{
-  const act=inRange(ny,k.s,k.e);
-  let status;
-  if(act){status='<div class="st on">Faol<span class="pill">LIVE</span><small>tugashiga '+dur(k.e-ny)+'</small></div>'}
-  else{const wait=((k.s-ny)%1440+1440)%1440;status='<div class="st">Boshlanishiga<small>'+dur(wait)+'</small></div>'}
-  return '<div class="kz"><div class="dot" style="background:var('+k.c+')"></div><div class="i"><div class="n">'+k.n+'</div><div class="t">'+hm(k.s+diff)+' – '+hm(k.e+diff)+' &nbsp;·&nbsp; NY '+hm(k.s)+' – '+hm(k.e)+'</div></div>'+status+'</div>';
- }).join("");
- $("ss").innerHTML=SS.map(x=>{
-  const m=parts(d,x.tz),open=inRange(m,x.s,x.e);
-  const left=open?x.e-m:((x.s-m)%1440+1440)%1440;
-  const shift=((ny-m)%1440+1440)%1440;
-  const s=(x.s+shift+diff)%1440;
-  return '<div class="kz"><div class="i"><div class="n">'+x.n+'</div><div class="t">'+hm(s)+' – '+hm(s+x.e-x.s)+'</div></div><div class="st'+(open?' on':'')+'">'+(open?'Ochiq':'Yopiq')+'<small>'+(open?'yopilishiga ':'ochilishiga ')+dur(left)+'</small></div></div>';
- }).join("");
-}
-if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(function(){})}
-buildTimeline();tick();
-setInterval(tick,1000);
-setInterval(buildTimeline,3600000);
-</script>
+<script src="app.js"></script>
 </body>
 </html>
