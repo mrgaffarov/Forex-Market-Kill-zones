@@ -163,5 +163,6 @@ $("imp").onclick=()=>{try{const o=JSON.parse($("bk").value);
  eKZ();eSS();buildTL();renderJr();renderCal();tick();$("bkm").textContent="Tiklandi.";toast("Tiklandi")}catch(e){$("bkm").textContent="Matn noto‘g‘ri.";toast("Matn noto‘g‘ri")}};
 
 /* ---- boshlash ---- */
+$("ver").textContent="Versiya: v6";
 applyTh();refreshTz();eKZ();eSS();buildTL();tick();renderJr();renderCal();
 setInterval(tick,1000);setInterval(buildTL,3600000);
