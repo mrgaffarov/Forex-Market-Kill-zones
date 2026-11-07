@@ -8,7 +8,7 @@
 <link rel="icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=8">
+<link rel="stylesheet" href="style.css?v=9">
 <title>Forex Kill Zone</title>
 </head>
 <body>
@@ -48,18 +48,30 @@
 </div>
 
 <div id="jr" class="pg hide">
-  <div class="chips" id="per"><button data-d="0" class="on">Hammasi</button><button data-d="7">7 kun</button><button data-d="30">30 kun</button></div>
-  <section class="card"><div class="jtop"><div id="dn"></div><div id="leg"></div></div><div class="kpis" id="kpi"></div></section>
+  <div class="jhd"><div class="seg4" id="vw"><button data-v="w">Hafta</button><button data-v="m" class="on">Oy</button><button data-v="y">Yil</button><button data-v="a">Hammasi</button></div>
+    <div class="seg2" id="mt"><button data-v="r" class="on">R</button><button data-v="u">$</button></div></div>
+  <div class="jnav"><button class="nv" id="jprev" aria-label="Oldingi">‹</button><b id="jttl"></b><button class="nv" id="jnext" aria-label="Keyingi">›</button></div>
+  <div class="g2 sum"><div class="card sm"><span class="lbl" style="margin:0">Jami P&amp;L</span><div class="big" id="jtot"></div></div><div class="card sm" id="jstk"></div></div>
+  <section class="card"><div class="cph"><button class="chip2" id="jwk"></button></div><div id="jcal"></div></section>
+  <section class="card hide" id="dayd"></section>
   <button class="pri wide" id="jnew"><svg class="ic"><use href="#i-plus"/></svg>Yangi savdo</button>
   <section class="card hide" id="jform"><h2>Yangi savdo</h2>
-    <div class="g2"><label>Juftlik<input id="pair" value="EURUSD" autocapitalize="characters"></label>
-    <div><span class="lbl">Yo‘nalish</span><div class="seg2" id="side"><button data-v="Buy" class="on">Buy</button><button data-v="Sell">Sell</button></div></div></div>
-    <span class="lbl">Natija</span><div class="seg3" id="out"><button data-v="w" class="on">Gʻalaba</button><button data-v="l">Magʻlubiyat</button><button data-v="d">Durrang</button></div>
-    <label id="resw">R miqdori<input id="res" type="number" step="0.1" min="0" inputmode="decimal" placeholder="masalan 2"></label>
+    <div class="seg3" id="out"><button data-v="w" class="on">Gʻalaba</button><button data-v="l">Magʻlubiyat</button><button data-v="d">Durrang</button></div>
+    <div class="g2" id="resw"><label>R miqdori<input id="res" type="number" step="0.1" min="0" inputmode="decimal" placeholder="masalan 2"></label><label>P&amp;L ($)<input id="usd" type="number" step="0.01" min="0" inputmode="decimal" placeholder="masalan 25"></label></div>
+    <div class="g2"><label>Sana<input id="td" type="date"></label><label>Vaqt<input id="tt" type="time"></label></div>
+    <div class="g2"><label>Juftlik<input id="pair" value="EURUSD" autocapitalize="characters"></label><div><span class="lbl">Yo‘nalish</span><div class="seg2" id="side"><button data-v="Buy" class="on">Buy</button><button data-v="Sell">Sell</button></div></div></div>
     <label>Teglar (vergul bilan)<input id="tags" placeholder="sweep, FVG, OB"></label>
     <label>Izoh<input id="note" placeholder="qisqa izoh"></label>
-    <div class="foot" id="curkz" style="margin:4px 0 10px"></div>
+    <label>Dars<input id="les" placeholder="bu savdodan xulosa"></label>
+    <div class="foot" style="margin:0 0 10px">Miqdor musbat kiritiladi, belgi natijaga qarab qo‘yiladi. Kill zone savdo vaqtiga qarab o‘zi belgilanadi.</div><span id="curkz" class="hide"></span>
     <button class="pri wide" id="add"><svg class="ic"><use href="#i-check"/></svg>Saqlash</button></section>
+  <section class="card"><h2>P&amp;L va Drawdown</h2>
+    <div class="seg4" id="cm" style="margin-bottom:12px"><button data-v="d" class="on">Kunlik</button><button data-v="w">Haftalik</button><button data-v="m">Oylik</button><button data-v="a">Hammasi</button></div>
+    <div class="pbar"><div><span class="lbl" style="margin:0">Jami P&amp;L (davr)</span><div class="big" id="pbig"></div></div><div class="foot"><span id="pmdd"></span><br><span id="psub"></span></div></div>
+    <div class="pw"><div class="ptip hide" id="ptip"></div><div id="pnl"></div></div>
+    <span class="lbl" style="margin:10px 0 2px">Drawdown (cho‘qqidan pasayish)</span><div id="ddc"></div></section>
+  <section class="card"><div class="jtop"><div id="dn"></div><div id="leg"></div></div><div class="kpis" id="kpi"></div>
+    <div class="foot" style="margin-top:10px">Profit Factor (foyda koeffitsiyenti) = jami foyda ÷ jami zarar. 1 dan yuqori bo‘lsa, strategiya foydali.</div></section>
   <div id="jan"></div>
   <section class="card"><h2>So‘nggi savdolar</h2><div id="list"></div></section>
 </div>
@@ -106,7 +118,7 @@
   <section class="card"><h2><svg class="ic"><use href="#i-vol"/></svg>Signal</h2>
     <div class="sw"><span>Kill zone va yangilikda ovoz + tebranish</span><label class="tg"><input type="checkbox" id="snd"><i></i></label></div>
     <label>Kill zone oldidan ogohlantirish<select id="pre"><option value="0">Yo‘q</option><option value="5">5 daqiqa</option><option value="10">10 daqiqa</option><option value="15">15 daqiqa</option></select></label>
-    <div class="foot">Faqat ilova ochiq turganda ishlaydi.</div></section>
+    <div class="foot">Faqat ilova ochiq turganda ishga tushadi.</div></section>
   <section class="card"><h2>Mavzu</h2><div class="seg2 s3" id="th"><button data-v="auto">Avto</button><button data-v="light">Yorug‘</button><button data-v="dark">Qorong‘i</button></div></section>
 </div>
 <p class="foot" style="text-align:center">Ta’lim uchun, moliyaviy maslahat emas. Bozor NY vaqti bilan juma 17:00 da yopilib, yakshanba 17:00 da ochiladi. <span id="ver">Versiya: JS yuklanmadi</span></p>
@@ -122,6 +134,6 @@
 <div class="sheet hide" id="sheet"><div class="bdp" id="sbd"></div><div class="sp"><div class="grab"></div><h2>Vaqt zonasi</h2><div id="slist"></div>
   <div class="zc"><b>Boshqa UTC</b><div id="shcu"></div></div></div></div>
 <div class="toast hide" id="toast"></div>
-<script src="app.js?v=8"></script>
+<script src="app.js?v=9"></script>
 </body>
 </html>
