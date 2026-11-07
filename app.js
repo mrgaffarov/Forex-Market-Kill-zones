@@ -52,8 +52,8 @@ document.addEventListener("click",e=>{
 /* ---- bo'limlar ---- */
 document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>{
  document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("a",x===b));
- ["home","jr","tools","set"].forEach(id=>$(id).classList.toggle("hide",id!==b.dataset.t));
- if(b.dataset.t==="jr")renderJr();if(b.dataset.t==="tools")renderCal();window.scrollTo(0,0)});
+ ["home","jr","stats","tools","set"].forEach(id=>$(id).classList.toggle("hide",id!==b.dataset.t));
+ if(b.dataset.t==="jr")renderJr();if(b.dataset.t==="stats")renderStats();if(b.dataset.t==="tools")renderCal();window.scrollTo(0,0)});
 document.querySelectorAll("#sub3 button").forEach(b=>b.onclick=()=>{
  document.querySelectorAll("#sub3 button").forEach(x=>x.classList.toggle("on",x===b));
  ["cal","risk","bk"].forEach(p=>$("p-"+p).classList.toggle("hide",p!==b.dataset.p))});
@@ -177,7 +177,7 @@ function donut(w,l,b,n){const C=2*Math.PI*40;let off=0,h='<svg viewBox="0 0 100 
 const ddOf=a=>{let c=0,p=0,m=0;a.forEach(v=>{c+=v;p=Math.max(p,c);m=Math.min(m,c-p)});return m};
 function streak(T){const s=T.slice().sort((a,b)=>tms(a)-tms(b));let bw=0,bl=0,cw=0,cL=0,cur=0,ty="";s.forEach(t=>{const c=oc(t);if(c==="w"){cw++;cL=0;bw=Math.max(bw,cw)}else if(c==="l"){cL++;cw=0;bl=Math.max(bl,cL)}});
  for(let i=s.length-1;i>=0;i--){const c=oc(s[i]);if(c==="d")continue;if(!ty)ty=c;if(c===ty)cur++;else break}return{cur,ty,bw,bl}}
-const rowH=(t,i)=>{const k=oc(t),has=mt==="r"||(t.u!==undefined&&t.u!==null),v=val(t);return'<div class="tr '+k+'"><div><span class="bdg '+k+'">'+(k==="w"?"Gʻalaba":k==="l"?"Magʻlubiyat":"Durrang")+"</span><b>"+esc(t.p)+"</b> "+esc(t.s)+"<small>"+esc(t.kz)+" · "+esc(t.d)+(t.nt?" · "+esc(t.nt):"")+(t.tg&&t.tg.length?" · #"+esc(t.tg.join(" #")):"")+(t.ls?"<br>Dars: "+esc(t.ls):"")+'</small></div><div><b class="'+cl(v)+'">'+(has?fv(v,1):"—")+'</b><button class="x xd" data-i="'+i+'" aria-label="O‘chirish">'+IC("x")+"</button></div></div>"};
+const rowH=(t,i)=>{const k=oc(t),has=mt==="r"||(t.u!==undefined&&t.u!==null),v=val(t);return'<div class="tr '+k+'"><div><span class="bdg '+k+'">'+(k==="w"?"Gʻalaba":k==="l"?"Magʻlubiyat":"Durrang")+"</span><b>"+esc(t.p)+"</b> "+esc(t.s)+"<small>"+esc(t.kz)+" · "+esc(t.d)+(t.nt?" · "+esc(t.nt):"")+(t.su?" · "+esc(t.su):(t.tg&&t.tg[0]?" · #"+esc(t.tg[0]):""))+(t.ls?"<br>Dars: "+esc(t.ls):"")+(t.mi&&t.mi.length?'<br><span class="mb">Xato: '+t.mi.map(esc).join(" · ")+"</span>":"")+'</small></div><div><b class="'+cl(v)+'">'+(has?fv(v,1):"—")+'</b><button class="x xd" data-i="'+i+'" aria-label="O‘chirish">'+IC("x")+"</button></div></div>"};
 /* P&L va drawdown grafigi */
 function series(){const days=mapDays(),tk=todayK(),L=[];let c=0;
  if(cm==="d"){let k=tk;const ks=[];while(ks.length<30){if(dow(k)<5)ks.unshift(k);k=addD(k,-1)}ks.forEach(k=>{c+=(days[k]||{s:0}).s;L.push({k,v:c})});return{L,sub:"Oxirgi 30 sessiya (Du–Ju)"}}
@@ -208,7 +208,7 @@ function drawPnl(){const{L,sub}=series(),el=$("pnl"),n=L.length,last=n?L[n-1].v:
  $("ddc").innerHTML=mdd<0?'<svg viewBox="0 0 '+W+" "+H2+'" width="'+W+'" height="'+H2+'"><path d="'+d2+" L"+X(n-1).toFixed(1)+" 6 L"+X(0).toFixed(1)+' 6Z" style="fill:#dc2626;fill-opacity:.28"/><path d="'+d2+'" fill="none" style="stroke:#dc2626" stroke-width="1.8" stroke-linejoin="round"/><line x1="'+Lm+'" x2="'+(W-Rm)+'" y1="6" y2="6" style="stroke:var(--mute)"/><text x="'+(Lm-6)+'" y="10" text-anchor="end" class="ax">0</text><text x="'+(Lm-6)+'" y="'+(Y2(mn)+3).toFixed(1)+'" text-anchor="end" class="ax">'+f(+mn.toFixed(2))+"</text></svg>":'<div class="mute">Bu davrda drawdown bo‘lmagan.</div>'}
 function renderJr(){
  document.querySelectorAll("#vw button").forEach(b=>b.classList.toggle("on",b.dataset.v===vw));
- document.querySelectorAll("#mt button").forEach(b=>b.classList.toggle("on",b.dataset.v===mt));
+ document.querySelectorAll("#mt button,#mt2 button").forEach(b=>b.classList.toggle("on",b.dataset.v===mt));
  document.querySelectorAll("#cm button").forEach(b=>b.classList.toggle("on",b.dataset.v===cm));
  const days=mapDays(),R=rng(),T=trades.filter(t=>inR(t,R)),n=T.length,w=T.filter(t=>oc(t)==="w").length,l=T.filter(t=>oc(t)==="l").length,b=n-w-l,tot=T.reduce((a,t)=>a+val(t),0);
  $("jttl").textContent=ttl();$("jprev").style.visibility=$("jnext").style.visibility=vw==="a"?"hidden":"visible";
@@ -222,19 +222,18 @@ function renderJr(){
  $("leg").innerHTML='<div class="lg"><i style="background:#16a34a"></i>Gʻalaba<b>'+w+pc(w)+'</b></div><div class="lg"><i style="background:#dc2626"></i>Magʻlubiyat<b>'+l+pc(l)+'</b></div><div class="lg"><i style="background:var(--mute)"></i>Durrang<b>'+b+pc(b)+"</b></div>";
  const aw=w?gw/w:0,al=l?gl/l:0;
  $("kpi").innerHTML='<div><b>'+n+'</b>Savdolar</div><div><b>'+(n?Math.round(w/n*100)+"%":"—")+'</b>Gʻalaba</div><div><b class="'+(pf>=1?"pos":n?"neg":"")+'">'+(n?(pf===Infinity?"∞":pf.toFixed(2)):"—")+'</b>Profit Factor</div><div><b class="pos">'+(w?fv(aw):"—")+'</b>O‘rt. foyda</div><div><b class="neg">'+(l?fv(-al):"—")+'</b>O‘rt. zarar</div><div><b class="neg">'+(n?fv(ddOf(vals)):"—")+"</b>Maks. DD</div>";
- const DN=DNs,ac=(t,body)=>'<details class="card"><summary>'+t+'</summary><div style="margin-top:10px">'+body+"</div></details>";
- $("jan").innerHTML=ac("Kill zone bo‘yicha",tb(g,"Kill zone"))+ac("Hafta kuni",tb(grp(T,t=>[DN[new Date(wall(tms(t),tz)).getUTCDay()]]),"Kun"))+ac("Soat (NY)",tb(grp(T,t=>[t.d.slice(11,13)+":00"]),"Soat"))+ac("Teglar",tb(grp(T,t=>t.tg||[]),"Teg"));
- const dd=$("dayd");
+ const DN=DNs;
+  const dd=$("dayd");
  if(selDay){const o=days[selDay],dl=trades.map((t,i)=>[t,i]).filter(([t])=>dk(tms(t))===selDay),dt=D(selDay);dd.classList.remove("hide");
   dd.innerHTML='<div class="dhd"><b>'+dt.getUTCDate()+"-"+MS[dt.getUTCMonth()]+", "+DN[dt.getUTCDay()]+'</b><span class="'+cl(o?o.s:0)+'">'+(o?fv(o.s,1):"")+"</span></div>"+(dl.length?dl.map(([t,i])=>rowH(t,i)).join(""):'<div class="mute">Bu kunda savdo yo‘q.</div>')+'<button class="wide" data-add="'+selDay+'" style="margin:8px 0 0">'+IC("plus")+"Savdo qo‘shish</button>"}else dd.classList.add("hide");
  const L2=trades.map((t,i)=>[t,i]).filter(([t])=>inR(t,R)).sort((a,c)=>tms(c[0])-tms(a[0])).slice(0,40);
  $("list").innerHTML=L2.length?L2.map(([t,i])=>rowH(t,i)).join(""):'<div class="mute">Hali savdo yo‘q.</div>';
- drawPnl()}
+ drawPnl();renderStats()}
 function openForm(k){$("td").value=k;$("tt").value=nowT();const f=$("jform");f.classList.remove("hide");f.scrollIntoView({behavior:"smooth",block:"start"})}
 const shift=n=>{const d=D(anc);if(vw==="w")d.setUTCDate(d.getUTCDate()+7*n);else if(vw==="m"){d.setUTCDate(1);d.setUTCMonth(d.getUTCMonth()+n)}else if(vw==="y")d.setUTCFullYear(d.getUTCFullYear()+n);anc=K(d);selDay=null;renderJr()};
 $("jprev").onclick=()=>shift(-1);$("jnext").onclick=()=>shift(1);
 $("vw").onclick=e=>{const b=e.target.closest("button");if(b){vw=b.dataset.v;selDay=null;renderJr()}};
-$("mt").onclick=e=>{const b=e.target.closest("button");if(b){mt=b.dataset.v;sv("mt",mt);renderJr()}};
+const setMt=e=>{const b=e.target.closest("button");if(b){mt=b.dataset.v;sv("mt",mt);renderJr()}};$("mt").onclick=setMt;$("mt2").onclick=setMt;
 $("cm").onclick=e=>{const b=e.target.closest("button");if(b){cm=b.dataset.v;renderJr()}};
 $("jwk").onclick=()=>{wk=!wk;sv("wk",wk);renderJr()};
 $("jr").onclick=e=>{const t=e.target;let b;
@@ -249,28 +248,62 @@ $("add").onclick=()=>{const rv=Math.abs(parseFloat($("res").value)),uv=Math.abs(
  if(outc!=="d"&&isNaN(rv)&&isNaN(uv)){toast("R yoki P&L ($) kiriting");return}
  if(!$("td").value||!$("tt").value){toast("Sana va vaqtni kiriting");return}
  const ts=toUTC($("td").value,$("tt").value,tz),dd=new Date(ts),i=nyInfo(dd),nm=mins(dd,NY),k=mkt(i.dow,nm).open?KZ.find(x=>act(x,nm)):null,sg=outc==="w"?1:outc==="l"?-1:0;
- trades.unshift({ts,p:$("pair").value.trim().toUpperCase()||"—",s:side,out:outc,r:sg*(isNaN(rv)?0:rv),u:isNaN(uv)?undefined:sg*uv,kz:k?k.n:"Kill zone tashqarida",nt:$("note").value.trim(),ls:$("les").value.trim(),tg:$("tags").value.split(",").map(x=>x.trim().toLowerCase()).filter(Boolean),d:i.date+" "+hm(nm)+" NY"});
- sv("tr",trades);["res","usd","note","les","tags"].forEach(id=>$(id).value="");$("jform").classList.add("hide");selDay=dk(ts);anc=selDay;renderJr();toast("Saqlandi")};
+ trades.unshift({ts,p:$("pair").value.trim().toUpperCase()||"—",s:side,out:outc,r:sg*(isNaN(rv)?0:rv),u:isNaN(uv)?undefined:sg*uv,kz:k?k.n:"Kill zone tashqarida",nt:$("note").value.trim(),ls:$("les").value.trim(),su:fsu,mi:[...fmi],d:i.date+" "+hm(nm)+" NY"});
+ sv("tr",trades);["res","usd","note","les"].forEach(id=>$(id).value="");fsu="";fmi.clear();chips();$("jform").classList.add("hide");selDay=dk(ts);anc=selDay;renderJr();toast("Saqlandi")};
 window.addEventListener("resize",()=>{if(!$("jr").classList.contains("hide"))drawPnl()});
+
+/* ---- setup va xatolar ---- */
+let SU=ld("su",["Sweep + MSS","FVG","Order Block","Breaker","Silver Bullet","Boshqa"]),MI=ld("mi",["Erta kirdim","Stopni surdim","FOMO","Qasos savdosi","Riskni oshirdim","Rejaga amal qilmadim","Kech chiqdim"]),fsu="",fmi=new Set(),sp=ld("sp",30);
+function chips(){
+ $("fsu").innerHTML=SU.map(x=>'<button class="ch'+(x===fsu?" on":"")+'" data-s="'+esc(x)+'">'+esc(x)+"</button>").join("");
+ $("fmi").innerHTML=MI.map(x=>'<button class="ch bad'+(fmi.has(x)?" on":"")+'" data-m="'+esc(x)+'">'+esc(x)+"</button>").join("");
+ $("esu").innerHTML=SU.map((x,i)=>'<span class="ch">'+esc(x)+'<button class="cx" data-i="'+i+'" aria-label="O‘chirish">×</button></span>').join("");
+ $("emi").innerHTML=MI.map((x,i)=>'<span class="ch">'+esc(x)+'<button class="cx" data-i="'+i+'" aria-label="O‘chirish">×</button></span>').join("")}
+$("fsu").onclick=e=>{const b=e.target.closest("[data-s]");if(b){fsu=fsu===b.dataset.s?"":b.dataset.s;chips()}};
+$("fmi").onclick=e=>{const b=e.target.closest("[data-m]");if(b){const v=b.dataset.m;fmi.has(v)?fmi.delete(v):fmi.add(v);chips()}};
+$("esu").onclick=e=>{const b=e.target.closest(".cx");if(b){SU.splice(+b.dataset.i,1);sv("su",SU);chips()}};
+$("emi").onclick=e=>{const b=e.target.closest(".cx");if(b){MI.splice(+b.dataset.i,1);sv("mi",MI);chips()}};
+$("asu").onclick=()=>{const v=$("nsu").value.trim();if(v&&!SU.includes(v)){SU.push(v);sv("su",SU);$("nsu").value="";chips()}};
+$("ami").onclick=()=>{const v=$("nmi").value.trim();if(v&&!MI.includes(v)){MI.push(v);sv("mi",MI);$("nmi").value="";chips()}};
+/* ---- statistika ---- */
+function bars(o,sort,lab){const ks=Object.keys(o);if(!ks.length)return'<div class="mute">Ma’lumot yo‘q</div>';ks.sort(sort||((a,b)=>o[b].r-o[a].r));const mx=Math.max(1e-9,...ks.map(k=>Math.abs(o[k].r)));
+ return ks.map(k=>{const x=o[k];return'<div class="br"><div class="bh"><b>'+esc(lab?lab(k):k)+"</b><span>"+x.n+" savdo · "+Math.round(x.w/x.n*100)+"% gʻalaba"+(x.n<5?'<i class="few">kam</i>':"")+'</span><em class="'+cl(x.r)+'">'+fv(x.r,1)+'</em></div><div class="bt"><i class="'+(x.r>=0?"g":"r")+'" style="width:'+Math.max(3,Math.abs(x.r)/mx*100)+'%"></i></div></div>'}).join("")}
+const bestLine=(o,lab)=>{const k=Object.keys(o).filter(k=>o[k].n>=3).sort((a,b)=>o[b].r-o[a].r)[0];return k&&o[k].r>0?'<div class="foot" style="margin-top:8px">Eng yaxshi: <b>'+esc(lab?lab(k):k)+"</b> · "+fv(o[k].r,1)+"</div>":""};
+function renderStats(){
+ document.querySelectorAll("#sp button").forEach(b=>b.classList.toggle("on",+b.dataset.d===sp));
+ const T=trades.filter(t=>!sp||tms(t)>Date.now()-sp*864e5),n=T.length,short=k=>k.replace(" kill zone","").replace("New York","NY"),DW=["Dushanba","Seshanba","Chorshanba","Payshanba","Juma","Shanba","Yakshanba"];
+ $("swarn").innerHTML=n<20?'<div class="warn"><b>Ma’lumot kam:</b> bu davrda '+n+' ta savdo. Ishonchli xulosa uchun kamida 20–30 ta savdo kerak, hozirgi raqamlar tasodifiy bo‘lishi mumkin.</div>':"";
+ const st=streak(T),last=T.slice().sort((a,b)=>tms(a)-tms(b)).slice(-12);
+ $("stk").innerHTML='<div class="stk"><div><span class="lbl">Hozirgi seriya</span><div class="big2 '+(st.ty==="w"?"pos":st.ty==="l"?"neg":"")+'">'+(st.cur||"—")+"<small> "+(st.ty==="w"?"Gʻalaba":st.ty==="l"?"Magʻlubiyat":"")+'</small></div></div><div><span class="lbl">Eng uzun</span><div class="big3"><span class="pos">'+st.bw+' G</span> · <span class="neg">'+st.bl+' M</span></div></div></div><div class="dots">'+(last.length?last.map(t=>'<i class="dt2 '+oc(t)+'"></i>').join(""):'<span class="mute">Savdo yo‘q</span>')+'</div><div class="foot">Oxirgi '+last.length+" savdo (o‘ngda eng yangisi)</div>";
+ const gs=grp(T,t=>[t.su||(t.tg&&t.tg[0])||"Belgilanmagan"]),gk=grp(T,t=>[t.kz||"—"]),gd=grp(T,t=>[DNs[new Date(wall(tms(t),tz)).getUTCDay()]]),gh=grp(T,t=>[t.d.slice(11,13)+":00"]);
+ $("b-su").innerHTML=bars(gs)+bestLine(gs);
+ $("b-kz").innerHTML=bars(gk,null,short)+bestLine(gk,short);
+ $("b-dw").innerHTML=bars(gd,(a,b)=>DW.indexOf(a)-DW.indexOf(b))+bestLine(gd);
+ $("b-hr").innerHTML=bars(gh,(a,b)=>a<b?-1:1)+bestLine(gh);
+ const mo={};T.forEach(t=>(t.mi||[]).forEach(m=>{const x=mo[m]=mo[m]||{n:0,w:0,r:0};x.n++;if(oc(t)==="w")x.w++;x.r+=val(t)}));
+ const wm=T.filter(t=>t.mi&&t.mi.length),nm=T.filter(t=>!(t.mi&&t.mi.length)),wp=a=>a.length?Math.round(a.filter(t=>oc(t)==="w").length/a.length*100)+"%":"—";
+ const worst=Object.keys(mo).sort((a,b)=>mo[a].r-mo[b].r)[0];
+ $("b-mi").innerHTML=wm.length?(worst&&mo[worst].r<0?'<div class="hl">Eng qimmat xato: <b>'+esc(worst)+"</b> · "+fv(mo[worst].r,1)+" ("+mo[worst].n+" marta)</div>":"")+'<div class="cmp"><div><b>'+wp(nm)+"</b>Xatosiz savdolar ("+nm.length+')</div><div><b>'+wp(wm)+"</b>Xatoli savdolar ("+wm.length+")</div></div>"+bars(mo,(a,b)=>mo[a].r-mo[b].r):'<div class="mute">Hali xato belgilanmagan. Savdo qo‘shganda “Xatolar” bo‘limidan belgilang, shunda qaysi xato qancha zarar keltirgani shu yerda ko‘rinadi.</div>'}
+$("sp").onclick=e=>{const b=e.target.closest("button");if(b){sp=+b.dataset.d;sv("sp",sp);renderStats()}};
 
 /* ---- risk va zaxira ---- */
 function calc(){const b=+$("bal").value,r=+$("rk").value,s=+$("sl").value,p=+$("pv").value;
  $("lot").innerHTML=(b&&r&&s&&p)?'Risk: <b>$'+(b*r/100).toFixed(2)+'</b> · Lot: <b>'+(b*r/100/(s*p)).toFixed(2)+"</b>":"Maydonlarni to‘ldiring";sv("calc",[b,r,s,p])}
 {const c=ld("calc",[1000,1,10,10]);["bal","rk","sl","pv"].forEach((id,i)=>{$(id).value=c[i]||"";$(id).oninput=calc});calc()}
-$("exp").onclick=()=>{const s=JSON.stringify({kz:KZ,ss:SS.map(y=>[y.s,y.e]),tr:trades,nw:mine});$("bk").value=s;try{navigator.clipboard.writeText(s)}catch(e){}$("bkm").textContent="Nusxalandi. Telegram “Saved messages” ga joylab qo‘ying.";toast("Nusxalandi")};
+$("exp").onclick=()=>{const s=JSON.stringify({kz:KZ,ss:SS.map(y=>[y.s,y.e]),tr:trades,nw:mine,su:SU,mi:MI});$("bk").value=s;try{navigator.clipboard.writeText(s)}catch(e){}$("bkm").textContent="Nusxalandi. Telegram “Saved messages” ga joylab qo‘ying.";toast("Nusxalandi")};
 $("imp").onclick=()=>{try{const o=JSON.parse($("bk").value);
  if(o.kz&&o.kz.length===4){KZ=o.kz;sv("kz",KZ)}if(Array.isArray(o.ss))o.ss.forEach((v,i)=>{if(SS[i]&&v){SS[i].s=v[0];SS[i].e=v[1]}});sv("ss",SS.map(y=>[y.s,y.e]));
- if(Array.isArray(o.tr)){trades=o.tr;sv("tr",trades)}if(Array.isArray(o.nw)){mine=o.nw.filter(n=>n.ts);sv("nw",mine)}
+ if(Array.isArray(o.tr)){trades=o.tr;sv("tr",trades)}if(Array.isArray(o.su)){SU=o.su;sv("su",SU)}if(Array.isArray(o.mi)){MI=o.mi;sv("mi",MI)}if(Array.isArray(o.nw)){mine=o.nw.filter(n=>n.ts);sv("nw",mine)}
  eKZ();eSS();buildTL();renderJr();renderCal();tick();$("bkm").textContent="Tiklandi.";toast("Tiklandi")}catch(e){$("bkm").textContent="Matn noto‘g‘ri.";toast("Matn noto‘g‘ri")}};
 
 /* ---- GitHub baza ---- */
 function applyData(o){if(o.kz&&o.kz.length===4){KZ=o.kz;sv("kz",KZ)}if(Array.isArray(o.ss))o.ss.forEach((v,i)=>{if(SS[i]&&v){SS[i].s=v[0];SS[i].e=v[1]}});sv("ss",SS.map(y=>[y.s,y.e]));
- if(Array.isArray(o.tr)){trades=o.tr;sv("tr",trades)}if(Array.isArray(o.nw)){mine=o.nw.filter(n=>n.ts);fixIds();sv("nw",mine)}eKZ();eSS();buildTL();renderJr();renderCal();tick()}
+ if(Array.isArray(o.tr)){trades=o.tr;sv("tr",trades)}if(Array.isArray(o.su)){SU=o.su;sv("su",SU)}if(Array.isArray(o.mi)){MI=o.mi;sv("mi",MI)}if(Array.isArray(o.nw)){mine=o.nw.filter(n=>n.ts);fixIds();sv("nw",mine)}chips();eKZ();eSS();buildTL();renderJr();renderCal();tick()}
 $("imp").onclick=()=>{try{applyData(JSON.parse($("bk").value));$("bkm").textContent="Tiklandi.";toast("Tiklandi")}catch(e){$("bkm").textContent="Matn noto‘g‘ri.";toast("Matn noto‘g‘ri")}};
 const GH={o:ld("gho","mrgaffarov"),r:ld("ghr","killzone-data"),t:ld("ght","")},GP="data/killzone-data.json";
 ["gho","ghr","ght"].forEach(id=>{$(id).value=GH[id[2]];$(id).onchange=()=>{GH[id[2]]=$(id).value.trim();sv(id,GH[id[2]])}});
 const b64=s=>btoa(unescape(encodeURIComponent(s))),unb64=s=>decodeURIComponent(escape(atob(s.replace(/\s/g,""))));
-const snap=()=>JSON.stringify({app:"killzone",saved:new Date().toISOString(),kz:KZ,ss:SS.map(y=>[y.s,y.e]),tr:trades,nw:mine},null,1);
+const snap=()=>JSON.stringify({app:"killzone",saved:new Date().toISOString(),kz:KZ,ss:SS.map(y=>[y.s,y.e]),tr:trades,nw:mine,su:SU,mi:MI},null,1);
 const ghu=()=>"https://api.github.com/repos/"+GH.o+"/"+GH.r+"/contents/"+GP,ghm=t=>{$("ghm").textContent=t};
 const ghh=()=>{const h={Accept:"application/vnd.github+json"};if(GH.t)h.Authorization="Bearer "+GH.t;return h};
 $("ghsave").onclick=async()=>{if(!GH.t){ghm("Avval tokenni kiriting.");return}ghm("Saqlanmoqda…");
@@ -282,6 +315,6 @@ $("ghload").onclick=async()=>{ghm("Yuklanmoqda…");try{const g=await fetch(ghu(
  applyData(JSON.parse(unb64((await g.json()).content)));ghm("GitHub’dan tiklandi.");toast("Tiklandi")}catch(e){ghm("Tiklab bo‘lmadi.")}};
 
 /* ---- boshlash ---- */
-$("ver").textContent="Versiya: v9";
-applyTh();refreshTz();eKZ();eSS();buildTL();tick();renderJr();renderCal();
+$("ver").textContent="Versiya: v10";
+applyTh();refreshTz();chips();eKZ();eSS();buildTL();tick();renderJr();renderCal();
 setInterval(tick,1000);setInterval(buildTL,3600000);

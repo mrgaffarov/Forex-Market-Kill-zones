@@ -8,7 +8,7 @@
 <link rel="icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="style.css?v=10">
 <title>Forex Kill Zone</title>
 </head>
 <body>
@@ -29,7 +29,7 @@
 <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
 <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
 <symbol id="i-vol" viewBox="0 0 24 24"><path d="M4 10v4h4l5 4V6l-5 4z"/><path d="M16 9a4 4 0 010 6"/></symbol>
-</defs></svg>
+<symbol id="i-chart" viewBox="0 0 24 24"><path d="M5 20V11M12 20V4M19 20v-6"/></symbol></defs></svg>
 
 <header class="top">
   <div><div class="clock" id="clock">--:--:--</div><div class="sub" id="sub"></div></div>
@@ -60,7 +60,8 @@
     <div class="g2" id="resw"><label>R miqdori<input id="res" type="number" step="0.1" min="0" inputmode="decimal" placeholder="masalan 2"></label><label>P&amp;L ($)<input id="usd" type="number" step="0.01" min="0" inputmode="decimal" placeholder="masalan 25"></label></div>
     <div class="g2"><label>Sana<input id="td" type="date"></label><label>Vaqt<input id="tt" type="time"></label></div>
     <div class="g2"><label>Juftlik<input id="pair" value="EURUSD" autocapitalize="characters"></label><div><span class="lbl">Yo‘nalish</span><div class="seg2" id="side"><button data-v="Buy" class="on">Buy</button><button data-v="Sell">Sell</button></div></div></div>
-    <label>Teglar (vergul bilan)<input id="tags" placeholder="sweep, FVG, OB"></label>
+    <span class="lbl">Setup</span><div class="chs" id="fsu"></div>
+    <span class="lbl">Xatolar (bo‘lsa belgilang)</span><div class="chs" id="fmi"></div>
     <label>Izoh<input id="note" placeholder="qisqa izoh"></label>
     <label>Dars<input id="les" placeholder="bu savdodan xulosa"></label>
     <div class="foot" style="margin:0 0 10px">Miqdor musbat kiritiladi, belgi natijaga qarab qo‘yiladi. Kill zone savdo vaqtiga qarab o‘zi belgilanadi.</div><span id="curkz" class="hide"></span>
@@ -72,8 +73,19 @@
     <span class="lbl" style="margin:10px 0 2px">Drawdown (cho‘qqidan pasayish)</span><div id="ddc"></div></section>
   <section class="card"><div class="jtop"><div id="dn"></div><div id="leg"></div></div><div class="kpis" id="kpi"></div>
     <div class="foot" style="margin-top:10px">Profit Factor (foyda koeffitsiyenti) = jami foyda ÷ jami zarar. 1 dan yuqori bo‘lsa, strategiya foydali.</div></section>
-  <div id="jan"></div>
   <section class="card"><h2>So‘nggi savdolar</h2><div id="list"></div></section>
+</div>
+
+<div id="stats" class="pg hide">
+  <div class="jhd"><div class="seg4" id="sp"><button data-d="7">7 kun</button><button data-d="30">30 kun</button><button data-d="90">90 kun</button><button data-d="0">Hammasi</button></div>
+    <div class="seg2" id="mt2"><button data-v="r">R</button><button data-v="u">$</button></div></div>
+  <div id="swarn"></div>
+  <section class="card"><h2><svg class="ic"><use href="#i-chart"/></svg>Seriya (Streak)</h2><div id="stk"></div></section>
+  <section class="card"><h2>Setup natijasi</h2><div id="b-su"></div></section>
+  <section class="card"><h2>Sessiya (kill zone) natijasi</h2><div id="b-kz"></div></section>
+  <section class="card"><h2>Hafta kuni</h2><div id="b-dw"></div></section>
+  <section class="card"><h2>Soat (New York vaqti)</h2><div id="b-hr"></div></section>
+  <section class="card"><h2>Xatolar (Mistake Tracker)</h2><div id="b-mi"></div></section>
 </div>
 
 <div id="tools" class="pg hide">
@@ -115,10 +127,12 @@
     <div class="foot" style="margin-top:8px">New York yozgi/qishki vaqtga o‘zi o‘tadi (UTC−4 / UTC−5).</div></section>
   <section class="card"><h2><svg class="ic"><use href="#i-clock"/></svg>Kill zone vaqtlari <small>(New York)</small></h2><div id="edit"></div><button id="reset" class="wide">Boshlang‘ich vaqtlarga qaytarish</button></section>
   <section class="card"><h2><svg class="ic"><use href="#i-tools"/></svg>Bozor sessiyalari <small>(shahar vaqtida)</small></h2><div id="sedit"></div><button id="sreset" class="wide">Boshlang‘ich soatlarga qaytarish</button></section>
+  <section class="card"><h2>Setup ro‘yxati</h2><div class="chs" id="esu"></div><div class="addr"><input id="nsu" placeholder="Yangi setup"><button id="asu" class="pri" aria-label="Qo‘shish"><svg class="ic"><use href="#i-plus"/></svg></button></div></section>
+  <section class="card"><h2>Xatolar ro‘yxati</h2><div class="chs" id="emi"></div><div class="addr"><input id="nmi" placeholder="Yangi xato turi"><button id="ami" class="pri" aria-label="Qo‘shish"><svg class="ic"><use href="#i-plus"/></svg></button></div></section>
   <section class="card"><h2><svg class="ic"><use href="#i-vol"/></svg>Signal</h2>
     <div class="sw"><span>Kill zone va yangilikda ovoz + tebranish</span><label class="tg"><input type="checkbox" id="snd"><i></i></label></div>
     <label>Kill zone oldidan ogohlantirish<select id="pre"><option value="0">Yo‘q</option><option value="5">5 daqiqa</option><option value="10">10 daqiqa</option><option value="15">15 daqiqa</option></select></label>
-    <div class="foot">Faqat ilova ochiq turganda ishga tushadi.</div></section>
+    <div class="foot">Faqat ilova ochiq turganda ishlaydi.</div></section>
   <section class="card"><h2>Mavzu</h2><div class="seg2 s3" id="th"><button data-v="auto">Avto</button><button data-v="light">Yorug‘</button><button data-v="dark">Qorong‘i</button></div></section>
 </div>
 <p class="foot" style="text-align:center">Ta’lim uchun, moliyaviy maslahat emas. Bozor NY vaqti bilan juma 17:00 da yopilib, yakshanba 17:00 da ochiladi. <span id="ver">Versiya: JS yuklanmadi</span></p>
@@ -127,6 +141,7 @@
 <nav id="nav" aria-label="Bo‘limlar">
   <button data-t="home" class="a"><svg class="ic"><use href="#i-home"/></svg><span>Asosiy</span></button>
   <button data-t="jr"><svg class="ic"><use href="#i-book"/></svg><span>Jurnal</span></button>
+  <button data-t="stats"><svg class="ic"><use href="#i-chart"/></svg><span>Statistika</span></button>
   <button data-t="tools"><svg class="ic"><use href="#i-tools"/></svg><span>Asboblar</span></button>
   <button data-t="set"><svg class="ic"><use href="#i-gear"/></svg><span>Sozlama</span></button>
 </nav>
@@ -134,6 +149,6 @@
 <div class="sheet hide" id="sheet"><div class="bdp" id="sbd"></div><div class="sp"><div class="grab"></div><h2>Vaqt zonasi</h2><div id="slist"></div>
   <div class="zc"><b>Boshqa UTC</b><div id="shcu"></div></div></div></div>
 <div class="toast hide" id="toast"></div>
-<script src="app.js?v=9"></script>
+<script src="app.js?v=10"></script>
 </body>
 </html>
