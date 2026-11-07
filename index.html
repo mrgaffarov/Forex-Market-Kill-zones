@@ -8,7 +8,7 @@
 <link rel="icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="style.css?v=8">
 <title>Forex Kill Zone</title>
 </head>
 <body>
@@ -39,21 +39,23 @@
 <main>
 <div id="home" class="pg">
   <div class="ban" id="ban"></div>
-  <section class="card"><h2>24 soat <small>(New York vaqti)</small></h2><div id="tl"></div>
-    <div class="axis"><span>00</span><span>04</span><span>08</span><span>12</span><span>16</span><span>20</span><span>24</span></div>
-    <div class="foot">MO Midnight Open 00:00 · LO London Open 02:00 · NY Open 07:00 (NY vaqti)</div></section>
-  <section class="card"><h2>Kill zonalar <small>(Toshkent vaqt)</small></h2><div id="kz"></div></section>
-  <section class="card"><h2>Muhim yangiliklar <small>USD · yuqori ta’sir</small></h2><div id="hn"></div></section>
-  <section class="card"><h2>Bozor sessiyalari</h2><div class="foot" style="margin:-4px 0 6px">Osiyo sessiyasi — Tokio (Sydney ham shu vaqtda ochiladi). Soatlarni Sozlamada o‘zgartirasiz.</div><div id="ss"></div></section>
+  <div id="al"></div>
+  <section class="card">
+    <div class="bph"><div><span class="lbl">Vaqt mintaqasi</span><button class="zsel" id="tzb2"><span id="tzl2"></span><svg class="ic s"><use href="#i-chev"/></svg></button></div>
+    <div class="h24"><span class="lbl">24 soatlik vaqt</span><label class="tg"><input type="checkbox" id="h24"><i></i></label></div></div>
+    <div class="bp"><div class="axr" id="ax"></div><div id="rws"></div><div class="ov" id="ov"></div></div>
+    <div class="foot" style="margin-top:8px">Punktir chiziq: Midnight Open (New York 00:00). Hajm egri chizig‘i taxminiy, o‘rtacha kunlik profil.</div></section>
 </div>
 
 <div id="jr" class="pg hide">
+  <div class="chips" id="per"><button data-d="0" class="on">Hammasi</button><button data-d="7">7 kun</button><button data-d="30">30 kun</button></div>
   <section class="card"><div class="jtop"><div id="dn"></div><div id="leg"></div></div><div class="kpis" id="kpi"></div></section>
   <button class="pri wide" id="jnew"><svg class="ic"><use href="#i-plus"/></svg>Yangi savdo</button>
   <section class="card hide" id="jform"><h2>Yangi savdo</h2>
     <div class="g2"><label>Juftlik<input id="pair" value="EURUSD" autocapitalize="characters"></label>
     <div><span class="lbl">Yo‘nalish</span><div class="seg2" id="side"><button data-v="Buy" class="on">Buy</button><button data-v="Sell">Sell</button></div></div></div>
-    <label>Natija (R, yutqizish minus bilan)<input id="res" type="number" step="0.1" inputmode="decimal" placeholder="masalan 2 yoki -1"></label>
+    <span class="lbl">Natija</span><div class="seg3" id="out"><button data-v="w" class="on">Gʻalaba</button><button data-v="l">Magʻlubiyat</button><button data-v="d">Durrang</button></div>
+    <label id="resw">R miqdori<input id="res" type="number" step="0.1" min="0" inputmode="decimal" placeholder="masalan 2"></label>
     <label>Teglar (vergul bilan)<input id="tags" placeholder="sweep, FVG, OB"></label>
     <label>Izoh<input id="note" placeholder="qisqa izoh"></label>
     <div class="foot" id="curkz" style="margin:4px 0 10px"></div>
@@ -64,26 +66,35 @@
 
 <div id="tools" class="pg hide">
   <div class="sub3" id="sub3">
-    <button data-p="cal" class="on"><svg class="ic"><use href="#i-cal"/></svg>Taqvim</button>
+    <button data-p="cal" class="on"><svg class="ic"><use href="#i-cal"/></svg>Yangiliklar</button>
     <button data-p="risk"><svg class="ic"><use href="#i-calc"/></svg>Risk</button>
-    <button data-p="bk"><svg class="ic"><use href="#i-db"/></svg>Zaxira</button>
+    <button data-p="bk"><svg class="ic"><use href="#i-db"/></svg>Baza</button>
   </div>
   <div id="p-cal">
-    <div class="foot" id="calu" style="margin:0 2px 8px"></div>
+    <details class="card" open><summary><svg class="ic"><use href="#i-plus"/></svg>Yangilik qo‘shish</summary>
+      <div class="g2" style="margin-top:10px"><label>Sana<input id="nd" type="date"></label><label>Vaqt<input id="ntm" type="time"></label></div>
+      <label>Nomi<input id="nt" placeholder="NFP, CPI, FOMC ..."></label>
+      <div class="g2"><label>Prognoz<input id="nfc" placeholder="65K"></label><label>Oldingi<input id="npv" placeholder="29K"></label></div>
+      <button class="pri wide" id="nadd" style="margin-top:4px"><svg class="ic"><use href="#i-check"/></svg>Qo‘shish</button>
+      <div class="foot" id="calu"></div></details>
     <div id="cal"></div>
-    <details class="card"><summary><svg class="ic"><use href="#i-plus"/></svg>O‘z yangiligim</summary>
-      <div class="g2" style="margin-top:10px"><label>Sana<input id="nd" type="date"></label><label>Vaqt (tepada tanlangan zonada)<input id="ntm" type="time"></label></div>
-      <label>Nomi<input id="nt" placeholder="NFP, FOMC ..."></label>
-      <button class="pri wide" id="nadd" style="margin-top:8px"><svg class="ic"><use href="#i-check"/></svg>Qo‘shish</button></details>
   </div>
   <div id="p-risk" class="hide"><section class="card"><h2><svg class="ic"><use href="#i-calc"/></svg>Risk kalkulyatori</h2>
     <div class="g2"><label>Balans ($)<input id="bal" type="number" inputmode="decimal"></label><label>Risk (%)<input id="rk" type="number" step="0.1" inputmode="decimal"></label>
     <label>Stop-loss (pips)<input id="sl" type="number" inputmode="decimal"></label><label>1 pip, 1 lotda ($)<input id="pv" type="number" inputmode="decimal"></label></div>
     <div class="res" id="lot"></div><div class="foot">EURUSD kabi USD juftliklarida 1 lot uchun 1 pip = $10.</div></section></div>
-  <div id="p-bk" class="hide"><section class="card"><h2><svg class="ic"><use href="#i-db"/></svg>Zaxira</h2>
-    <textarea id="bk" placeholder="Zaxira matni shu yerda chiqadi. Tiklash uchun matnni shu yerga joylang."></textarea>
-    <div class="g2" style="margin-top:10px"><button id="exp"><svg class="ic"><use href="#i-copy"/></svg>Nusxalash</button><button id="imp"><svg class="ic"><use href="#i-restore"/></svg>Tiklash</button></div>
-    <div class="foot" id="bkm">Zaxirani Telegram “Saved messages” ga yuboring.</div></section></div>
+  <div id="p-bk" class="hide">
+    <section class="card"><h2><svg class="ic"><use href="#i-db"/></svg>GitHub baza</h2>
+      <div class="foot" style="margin:-4px 0 10px">Ma’lumot GitHub omborxonasiga <b>data/killzone-data.json</b> fayli bo‘lib saqlanadi. Tarixi GitHub saytida ko‘rinadi.</div>
+      <div class="g2"><label>Egasi<input id="gho"></label><label>Omborxona<input id="ghr"></label></div>
+      <label>Token<input id="ght" type="password" autocomplete="off" placeholder="github_pat_..."></label>
+      <div class="g2"><button class="pri" id="ghsave"><svg class="ic"><use href="#i-copy"/></svg>Saqlash</button><button id="ghload"><svg class="ic"><use href="#i-restore"/></svg>Tiklash</button></div>
+      <div class="foot" id="ghm" style="margin-top:8px"></div></section>
+    <section class="card"><h2>Qo‘lda zaxira</h2>
+      <textarea id="bk" placeholder="Zaxira matni shu yerda chiqadi. Tiklash uchun matnni shu yerga joylang."></textarea>
+      <div class="g2" style="margin-top:10px"><button id="exp"><svg class="ic"><use href="#i-copy"/></svg>Nusxalash</button><button id="imp"><svg class="ic"><use href="#i-restore"/></svg>Tiklash</button></div>
+      <div class="foot" id="bkm"></div></section>
+  </div>
 </div>
 
 <div id="set" class="pg hide">
@@ -111,7 +122,6 @@
 <div class="sheet hide" id="sheet"><div class="bdp" id="sbd"></div><div class="sp"><div class="grab"></div><h2>Vaqt zonasi</h2><div id="slist"></div>
   <div class="zc"><b>Boshqa UTC</b><div id="shcu"></div></div></div></div>
 <div class="toast hide" id="toast"></div>
-<script src="calendar.js?v=6"></script>
-<script src="app.js?v=6"></script>
+<script src="app.js?v=8"></script>
 </body>
 </html>
