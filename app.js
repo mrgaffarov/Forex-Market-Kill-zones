@@ -421,9 +421,10 @@ async function ghPut(path,content,msg,hkey,over){const key=hsh(hkey===undefined?
   throw new Error(r.status)}}
 async function ghSave0(force,quiet){if(!GH.t){ghm("Avval tokenni kiriting.");return"token"}if(force){GC={};sv("ghc",GC)}ghm("Saqlanmoqda…");const L=[];
  try{const mm=monthsOf(),keys=new Set(Object.keys(mm));Object.keys(GC).forEach(p=>{const m=p.match(/^data\/savdolar\/(\d{4}-\d{2})\.json$/);if(m)keys.add(m[1])});
-  for(const k of [...keys].sort()){L.push(k+".json — "+await ghPut("data/savdolar/"+k+".json",pack(k,mm[k]||[]),"Savdolar "+k+" yangilandi",undefined,force))}
-  L.push("sozlamalar.json — "+await ghPut("data/sozlamalar.json",setsPack(),"Sozlamalar yangilandi",undefined,force));
-  L.push("statistika.json — "+await ghPut("data/statistika.json",statPack(true),"Statistika yangilandi",statPack(false),true));
+  const total=keys.size+2;let done=0;const adv=()=>{done++;setProg(done/total*100);SGN=done+"/"+total+" fayl";setSync("busy")};
+  for(const k of [...keys].sort()){L.push(k+".json — "+await ghPut("data/savdolar/"+k+".json",pack(k,mm[k]||[]),"Savdolar "+k+" yangilandi",undefined,force));adv()}
+  L.push("sozlamalar.json — "+await ghPut("data/sozlamalar.json",setsPack(),"Sozlamalar yangilandi",undefined,force));adv();
+  L.push("statistika.json — "+await ghPut("data/statistika.json",statPack(true),"Statistika yangilandi",statPack(false),true));adv();
   const ch=L.filter(x=>x.endsWith("yangilandi")).length;ghm(ch+" fayl yangilandi, "+(L.length-ch)+" fayl o‘zgarmagan.");sv("ghlast",Date.now());if(!quiet)toast("GitHub’ga saqlandi");return null}
  catch(e){ghm((L.length?L.join("\n")+"\n":"")+ghErr(e));return e}}
 async function ghRestore0(){ghm("Yuklanmoqda…");
@@ -442,10 +443,21 @@ async function ghRestore0(){ghm("Yuklanmoqda…");
 
 let syncing=false,again=false,at=null,retry=null,sstate="off",syncOff=0;
 const autoOn=()=>!!(GH.t&&GH.o&&GH.r)&&ld("ghauto",true);
-const SYT={off:"GitHub ulanmagan",idle:"Qo‘lda saqlash",wait:"Saqlash kutilmoqda…",busy:"Saqlanmoqda…",ok:"GitHub’ga saqlangan",offline:"Internet yo‘q · keyinroq",err:"GitHub xatosi · bosing"};
-function setSync(st){sstate=st;const e=$("sync");e.className="sync "+st;const l=ld("ghlast",0);$("syt").textContent=SYT[st]+(st==="ok"&&l?" · "+ago(l):"")}
-function dirty(){try{if(syncOff)return;if(!autoOn()){setSync(GH.t?"idle":"off");return}clearTimeout(at);setSync("wait");at=setTimeout(()=>syncNow(false,true),6000)}catch(e){}}
-async function syncNow(force,quiet){if(syncing){again=true;return}syncing=true;clearTimeout(at);clearTimeout(retry);setSync("busy");$("ghsave").disabled=true;
+const SYT={off:"GitHub ulanmagan",idle:"Qo‘lda saqlash",wait:"Saqlash kutilmoqda",busy:"GitHub’ga saqlanmoqda",ok:"GitHub’ga saqlandi",offline:"Internet yo‘q",err:"GitHub xatosi"};
+const SYS={off:"Ulash uchun bosing",idle:"Bosib saqlang",wait:"6 soniyada avtomatik saqlanadi",offline:"Keyinroq qayta uriniladi",err:"Bosib qayta urining"};
+let PG=0,SGN="";
+function setProg(p){PG=Math.max(0,Math.min(100,Math.round(p)));$("sync").style.setProperty("--p",PG+"%");$("sfg").style.strokeDashoffset=100-PG;if(sstate==="busy")$("spc").textContent=PG+"%"}
+function setSync(st){const pv=sstate,fresh=st==="ok"&&pv==="busy";sstate=st;const e=$("sync"),l=ld("ghlast",0),pc=$("spc");
+ e.className="sync "+st+(fresh?" fresh":"");
+ $("syt").textContent=SYT[st];
+ $("sys").textContent=st==="busy"?SGN:st==="ok"?(fresh?"100% · hammasi saqlandi":l?"Oxirgi saqlash · "+ago(l):""):SYS[st];
+ if(st==="busy")pc.textContent=PG+"%";
+ else if(st==="ok"){setProg(100);pc.innerHTML=IC("check")}
+ else if(st==="err"||st==="offline"){setProg(100);pc.textContent="!"}
+ else{setProg(0);pc.innerHTML=IC("db")}
+ if(fresh)setTimeout(()=>{if(sstate==="ok")setSync("ok")},2600)}
+function dirty(){try{if(syncOff)return;if(!autoOn()){setSync(GH.t?"idle":"off");return}clearTimeout(at);{const e=$("sync");if(sstate==="wait"){e.className="sync";void e.offsetWidth}}setSync("wait");at=setTimeout(()=>syncNow(false,true),6000)}catch(e){}}
+async function syncNow(force,quiet){if(syncing){again=true;return}syncing=true;clearTimeout(at);clearTimeout(retry);setProg(0);SGN="Tayyorlanmoqda…";setSync("busy");$("ghsave").disabled=true;
  const e=await ghSave0(force,quiet);syncing=false;$("ghsave").disabled=false;
  if(!e)setSync("ok");else if(e==="token")setSync("off");else{const m=String(e&&e.message||e),net=!/^\d+$/.test(m)&&m!=="conflict";setSync(net?"offline":"err");if(net)retry=setTimeout(()=>{if(autoOn())syncNow(false,true)},30000)}
  renderBaza();if(again){again=false;dirty()}}
@@ -475,6 +487,6 @@ function renderBaza(){const ok=!!(GH.t&&GH.r&&GH.o),last=ld("ghlast",0),{rows,mm
 function initSync(){if(!(GH.t&&GH.o&&GH.r))setSync("off");else if(!ld("ghauto",true))setSync("idle");else if(pendN()>0)dirty();else setSync("ok")}
 
 /* ---- boshlash ---- */
-$("ver").textContent="v18";
+$("ver").textContent="v19";
 applyTh();refreshTz();chips();eKZ();eSS();buildTL();tick();renderJr();renderCal();renderBaza();$("gcon").open=!GH.t;initSync();
 setInterval(tick,1000);setInterval(buildTL,3600000);

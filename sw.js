@@ -1,7 +1,7 @@
 "use strict";
 /* Forex Kill Zone — service worker.
    Yangi versiya chiqarganda faqat VER ni app.js dagi bilan bir xil qiling. */
-const VER = "v15";
+const VER = "v19";
 const SHELL = "kz-shell-" + VER;   // index.html, css, js, manifest, ikonka
 const RUNTIME = "kz-fonts";        // Google Fonts (versiyaga bog‘liq emas)
 const CORE = ["manifest.json", "icon-192.png", "icon-512.png"];

@@ -8,7 +8,7 @@
 <link rel="icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=14">
+<link rel="stylesheet" href="style.css?v=19">
 <title>Forex Kill Zone</title>
 </head>
 <body>
@@ -48,7 +48,7 @@
 </div>
 
 <div id="jr" class="pg hide">
-  <div class="syncrow"><button class="sync off" id="sync"><i class="sd"></i><span id="syt">GitHub ulanmagan</span></button></div>
+  <div class="syncrow"><button class="sync off" id="sync" aria-live="polite"><span class="sring"><svg viewBox="0 0 36 36" aria-hidden="true"><circle class="sbg" cx="18" cy="18" r="15"/><circle class="sfg" id="sfg" cx="18" cy="18" r="15" pathLength="100"/></svg><span class="spc" id="spc"></span></span><span class="stx"><b id="syt">GitHub ulanmagan</b><small id="sys">Ulash uchun bosing</small></span></button></div>
   <div class="jhd"><div class="seg4" id="vw"><button data-v="w">Hafta</button><button data-v="m" class="on">Oy</button><button data-v="y">Yil</button><button data-v="a">Hammasi</button></div>
     <div class="seg2" id="mt"><button data-v="r" class="on">R</button><button data-v="u">$</button></div></div>
   <div class="jnav"><button class="nv" id="jprev" aria-label="Oldingi">‹</button><b id="jttl"></b><button class="nv" id="jnext" aria-label="Keyingi">›</button></div>
@@ -127,7 +127,7 @@
     <div class="foot">Faqat ilova ochiq turganda ishlaydi.</div></section>
   <section class="card"><h2>Mavzu</h2><div class="seg2 s3" id="th"><button data-v="auto">Avto</button><button data-v="light">Yorug‘</button><button data-v="dark">Qorong‘i</button></div></section>
 </div>
-<p class="foot" style="text-align:center">© 2026 Asliddin. All Rights Reserved.<span id="ver">Version: JS yuklanmadi</span></p>
+<p class="foot" style="text-align:center">Ta’lim uchun, moliyaviy maslahat emas. Bozor NY vaqti bilan juma 17:00 da yopilib, yakshanba 17:00 da ochiladi. <span id="ver">Versiya: JS yuklanmadi</span></p>
 </main>
 
 <nav id="nav" aria-label="Bo‘limlar">
@@ -145,7 +145,7 @@
   <div class="thd"><div><h2 style="margin:0">Yangi savdo</h2><div class="foot" id="tdt"></div></div><button class="x" id="tclose" aria-label="Yopish"><svg class="ic"><use href="#i-x"/></svg></button></div>
   <div class="tpsl" id="out"><button data-v="w" class="on">Foyda (TP)</button><button data-v="l">Zarar (SL)</button></div>
   <div class="g2"><label>P&amp;L ($)<div class="pre"><span>$</span><input id="usd" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0.00"></div></label><label>R (ixtiyoriy)<input id="res" type="number" step="0.1" min="0" inputmode="decimal" placeholder="0.0"></label></div>
-  <div class="g2"><label>Sana<input id="td" type="date"></label><label>Vaqt<input id="tt" type="time"></label></div>
+  <div class="g2"><label>Sana (NY kuni)<input id="td" type="date"></label><label>Vaqt (NY)<input id="tt" type="time"></label></div>
   <div class="g2"><label>Juftlik<input id="pair" value="EURUSD" autocapitalize="characters"></label><div><span class="lbl">Yo‘nalish</span><div class="seg2" id="side"><button data-v="Buy" class="on">Buy</button><button data-v="Sell">Sell</button></div></div></div>
   <button class="fld" id="fmb"><span><small>Xatolar</small><b id="fml">Xato yo‘q</b></span><svg class="ic s"><use href="#i-chev"/></svg></button>
   <label>Izoh<textarea id="note" class="ta" placeholder="Izoh yoki xulosa..."></textarea></label>
@@ -162,6 +162,6 @@
   <button class="pri wide bbtn" id="nadd"><svg class="ic"><use href="#i-check"/></svg> Qo‘shish</button>
 </div></div>
 <div class="toast hide" id="toast"></div>
-<script src="app.js?v=14"></script>
+<script src="app.js?v=19"></script>
 </body>
 </html>
