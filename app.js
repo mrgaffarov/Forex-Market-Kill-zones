@@ -445,7 +445,7 @@ async function ghRestore0(){ghm("Yuklanmoqda…");
 let syncing=false,again=false,at=null,retry=null,sstate="off",syncOff=0;
 const autoOn=()=>!!(GH.t&&GH.o&&GH.r)&&ld("ghauto",true);
 const SYT={off:"GitHub ulanmagan",idle:"Qo‘lda saqlash",wait:"Saqlash kutilmoqda",busy:"GitHub’ga saqlanmoqda",ok:"GitHub’ga saqlandi",offline:"Internet yo‘q",err:"GitHub xatosi"};
-const SYS={off:"Ulash uchun bosing",idle:"Bosib saqlang",wait:"6 soniyada avtomatik saqlanadi",offline:"Keyinroq qayta uriniladi",err:"Bosib qayta urining"};
+const SYS={off:"Ulash uchun bosing",idle:"Bosib saqlang",wait:"3 soniyada avtomatik saqlanadi",offline:"Keyinroq qayta uriniladi",err:"Bosib qayta urining"};
 let PG=0,SGN="",BKH="",ftm=null;
 const jcEl=()=>$("jcal");
 const bkIcon=()=>sstate==="busy"?PG+"%":sstate==="ok"?IC("check"):(sstate==="err"||sstate==="offline")?"!":IC("db");
@@ -465,7 +465,7 @@ function setSync(st){const pv=sstate,fresh=st==="ok"&&pv==="busy";sstate=st;cons
  if(st==="wait"||st==="busy")flip(true);
  else if(fresh||st==="err"||st==="offline"){flip(true);ftm=setTimeout(()=>flip(false),fresh?1800:2600)}
  else flip(false)}
-function dirty(){try{if(syncOff)return;if(!autoOn()){setSync(GH.t?"idle":"off");return}clearTimeout(at);setSync("wait");at=setTimeout(()=>syncNow(false,true),6000)}catch(e){}}
+function dirty(){try{if(syncOff)return;if(!autoOn()){setSync(GH.t?"idle":"off");return}clearTimeout(at);setSync("wait");at=setTimeout(()=>syncNow(false,true),3000)}catch(e){}}
 async function syncNow(force,quiet){if(syncing){again=true;return}syncing=true;clearTimeout(at);clearTimeout(retry);setProg(0);SGN="Tayyorlanmoqda…";setSync("busy");$("ghsave").disabled=true;
  const e=await ghSave0(force,quiet);syncing=false;$("ghsave").disabled=false;
  if(!e)setSync("ok");else if(e==="token")setSync("off");else{const m=String(e&&e.message||e),net=!/^\d+$/.test(m)&&m!=="conflict";setSync(net?"offline":"err");if(net)retry=setTimeout(()=>{if(autoOn())syncNow(false,true)},30000)}
