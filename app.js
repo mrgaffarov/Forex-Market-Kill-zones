@@ -2,7 +2,8 @@
 if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}
 const NY="America/New_York",$=id=>document.getElementById(id),pad=n=>String(n).padStart(2,"0");
 const ld=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
-const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const SYNCK=new Set(["tr","nw","kz","ss","mi","mt","wk","sp","an","cm","th","h12","snd","pre","tz","cu"]);
+const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}if(SYNCK.has(k))dirty()};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const IC=n=>'<svg class="ic"><use href="#i-'+n+'"/></svg>';
 function toast(m){const t=$("toast");t.textContent=m;t.classList.remove("hide");clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.add("hide"),1800)}
@@ -305,17 +306,35 @@ function renderStats(){
 window.addEventListener("resize",()=>{if(!$("stats").classList.contains("hide"))drawPnl()});
 
 /* ---- risk va zaxira ---- */
-function calc(){const b=+$("bal").value,r=+$("rk").value,sl=+$("sl").value,p=+$("pv").value;sv("calc",[b,r,sl,p]);
+const PT=[["usd","USD kotirovkali juftliklar","EURUSD, GBPUSD, AUDUSD, NZDUSD · $10 / pip",10],["xau","XAUUSD (oltin)","1 pip = 0.10 harakat · $10 / pip (broker bo‘yicha farq qilishi mumkin)",10],["man","Qo‘lda kiritish","Pip qiymatini o‘zingiz yozasiz",null]];
+let ptk="usd",RLtxt="";
+const m$=v=>"$"+v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+function calc(){const b=+$("bal").value,r=+$("rk").value,sl=+$("sl").value,p=+$("pv").value;sv("calc",[b,r,sl,p,ptk]);
  document.querySelectorAll("#rkc .ch").forEach(c=>c.classList.toggle("on",+c.dataset.r===r));
- if(!(b>0&&r>0&&sl>0&&p>0)){$("rres").innerHTML='<div class="empty" style="margin:0;border:0;padding:8px"><span class="ib">'+IC("calc")+"</span><b>Natija shu yerda chiqadi</b><small>Balans, risk, stop-loss va pip qiymatini kiriting</small></div>";return}
- const risk=b*r/100,lot=risk/(sl*p),m=v=>"$"+v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
- $("rres").innerHTML=(r>3?'<div class="warn" style="margin-bottom:12px"><b>Yuqori risk:</b> bitta savdoda hisobning '+r+'% xavf ostida. Odatda 0.5–2% tavsiya etiladi.</div>':"")
-  +'<span class="lbl">Tavsiya etilgan lot</span><div class="lotv">'+lot.toFixed(2)+"<small> lot</small></div>"
-  +'<div class="rrow"><div><b>'+m(risk)+'</b>Risk summasi</div><div><b>'+(lot*10).toFixed(1)+'</b>Mini lot</div><div><b>'+(lot*100).toFixed(0)+'</b>Mikro lot</div></div>'
-  +'<div class="rt"><div class="rth">Maqsad foyda (Risk : Foyda)</div>'+[1,2,3].map(k=>'<div class="rtr"><span>1 : '+k+" · "+(sl*k)+' pips</span><b>+'+m(risk*k)+"</b></div>").join("")+'</div><div class="foot" style="margin-top:8px">1 pip = '+m(lot*p)+" (shu lot bilan)</div>"}
+ document.querySelectorAll("#slc .ch").forEach(c=>c.classList.toggle("on",+c.dataset.s===sl));
+ $("rptl").textContent=PT.find(x=>x[0]===ptk)[1];
+ const H=$("rhero"),P=$("rplan");RLtxt="";
+ if(!(b>0&&r>0&&sl>0&&p>0)){H.className="card rh";H.innerHTML='<div class="empty" style="margin:0;border:0;padding:6px"><span class="ib">'+IC("calc")+"</span><b>Natija shu yerda chiqadi</b><small>Balans, risk, stop-loss va pip qiymatini kiriting</small></div>";P.classList.add("hide");return}
+ const risk=b*r/100,raw=risk/(sl*p),lot=Math.floor(raw*100+1e-9)/100,lv=r<=1?[1,"Konservativ"]:r<=2?[2,"O‘rtacha"]:r<=3?[3,"Yuqori"]:[4,"Xavfli"];
+ if(lot<0.01){H.className="card rh lv4";H.innerHTML='<span class="lbl">Tavsiya etilgan lot</span><div class="lotv">&lt;0.01<small> lot</small></div><div class="warn" style="margin:10px 0 0">Hisoblangan lot ('+raw.toFixed(3)+") brokerning eng kichik lotidan (0.01) kam. Riskni oshiring yoki stop-loss ni kamaytiring.</div>";P.classList.add("hide");return}
+ const real=lot*sl*p,rp=real/b*100;
+ H.className="card rh lv"+lv[0];
+ H.innerHTML='<div class="rh1"><span class="lbl" style="margin:0">Tavsiya etilgan lot</span><span class="lvl">'+lv[1]+' risk</span></div><div class="lotv">'+lot.toFixed(2)+"<small> lot</small></div><div class=\"foot\">Aniq hisob: "+raw.toFixed(3)+" · broker qadami 0.01 ga pastga yaxlitlandi</div>"
+  +'<div class="rrow"><div><b>'+m$(real)+"</b>Real risk</div><div><b>"+rp.toFixed(2)+"%</b>Balansdan</div><div><b>"+m$(lot*p)+"</b>1 pip qiymati</div></div>"
+  +(r>3?'<div class="warn" style="margin:0"><b>Xavfli risk:</b> bitta savdoda hisobning '+r+"% xavf ostida. Odatda 0.5–2% tavsiya etiladi.</div>":"");
+ P.classList.remove("hide");
+ P.innerHTML='<h2><span class="ib">'+IC("chart")+"</span>Reja</h2>"
+  +'<div class="rt"><div class="rth">Foyda maqsadi (Risk : Foyda)</div>'+[1,2,3,4].map(k=>'<div class="rtr"><span>1 : '+k+'</span><span class="mu">'+sl*k+" pips</span><b>+"+m$(real*k)+"</b></div>").join("")+"</div>"
+  +'<div class="rt" style="margin-top:12px"><div class="rth">Ketma-ket SL bo‘lsa</div>'+[3,5,10].map(n=>{const bal=b*Math.pow(1-rp/100,n);return'<div class="rtr"><span>'+n+' ta SL</span><span class="mu">balans '+m$(bal)+'</span><b class="neg">−'+((1-bal/b)*100).toFixed(1)+"%</b></div>"}).join("")+"</div>"
+  +'<div class="foot" style="margin-top:8px">Hisob real risk ('+rp.toFixed(2)+"%) bilan: har savdoda balansdan shuncha foiz yo‘qotiladi deb olingan.</div>";
+ RLtxt="Lot: "+lot.toFixed(2)+" | Risk: "+m$(real)+" ("+rp.toFixed(2)+"%) | SL: "+sl+" pips | 1 pip: "+m$(p)+"/lot"}
 $("rkc").innerHTML=[0.5,1,2,3].map(x=>'<button class="ch" data-r="'+x+'">'+x+"%</button>").join("");
-$("rkc").onclick=e=>{const b=e.target.closest("[data-r]");if(b){$("rk").value=b.dataset.r;calc()}};
-{const c=ld("calc",[1000,1,10,10]);["bal","rk","sl","pv"].forEach((id,i)=>{$(id).value=c[i]||"";$(id).oninput=calc});calc()}
+$("slc").innerHTML=[5,10,15,20,30,50].map(x=>'<button class="ch" data-s="'+x+'">'+x+" pips</button>").join("");
+$("p-risk").onclick=e=>{let b;if(b=e.target.closest(".sstp")){$("sl").value=Math.max(1,(+$("sl").value||0)+ +b.dataset.d);calc();return}if(b=e.target.closest("[data-r]")){$("rk").value=b.dataset.r;calc();return}if(b=e.target.closest("[data-s]")){$("sl").value=b.dataset.s;calc()}};
+$("rpt").onclick=()=>openPick("Instrument turi",PT.map(x=>[x[0],x[1],x[2]]),ptk,v=>{ptk=v;const x=PT.find(y=>y[0]===v);if(x[3]!==null)$("pv").value=x[3];calc()});
+$("rcopy").onclick=()=>{if(!RLtxt){toast("Avval hisoblang");return}try{navigator.clipboard.writeText(RLtxt)}catch(e){}toast("Nusxalandi")};
+$("rreset").onclick=()=>{$("bal").value="";$("rk").value=1;$("sl").value="";$("pv").value=10;ptk="usd";calc()};
+{const c=ld("calc",[1000,1,10,10,"usd"]);ptk=c[4]||"usd";["bal","rk","sl","pv"].forEach((id,i)=>{$(id).value=c[i]||"";$(id).oninput=()=>{if(id==="pv"){const x=PT.find(y=>y[0]===ptk);if(x[3]===null||+$("pv").value!==x[3])ptk="man"}calc()}});calc()}
 $("exp").onclick=()=>{const s=JSON.stringify({kz:KZ,ss:SS.map(y=>[y.s,y.e]),tr:trades,nw:mine,mi:MI});$("bk").value=s;try{navigator.clipboard.writeText(s)}catch(e){}$("bkm").textContent="Nusxalandi. Telegram “Saved messages” ga joylab qo‘ying.";toast("Nusxalandi")};
 $("imp").onclick=()=>{try{const o=JSON.parse($("bk").value);
  if(o.kz&&o.kz.length===4){KZ=o.kz;sv("kz",KZ)}if(Array.isArray(o.ss))o.ss.forEach((v,i)=>{if(SS[i]&&v){SS[i].s=v[0];SS[i].e=v[1]}});sv("ss",SS.map(y=>[y.s,y.e]));
@@ -355,15 +374,15 @@ async function ghPut(path,content,msg,hkey){const key=hsh(hkey===undefined?conte
   if(r.ok){const j=await r.json();GC[path]={h:key,sha:j.content.sha};sv("ghc",GC);return"yangilandi"}
   if((r.status===409||r.status===422)&&a===0){const g=await fetch(ghf(path),{headers:ghh()});sha=g.ok?(await g.json()).sha:undefined;continue}
   throw new Error(r.status)}}
-async function ghSave0(force){if(!GH.t){ghm("Avval tokenni kiriting.");return}if(force){GC={};sv("ghc",GC)}ghm("Saqlanmoqda…");const L=[];
+async function ghSave0(force,quiet){if(!GH.t){ghm("Avval tokenni kiriting.");return"token"}if(force){GC={};sv("ghc",GC)}ghm("Saqlanmoqda…");const L=[];
  try{const mm=monthsOf(),keys=new Set(Object.keys(mm));Object.keys(GC).forEach(p=>{const m=p.match(/^data\/savdolar\/(\d{4}-\d{2})\.json$/);if(m)keys.add(m[1])});
   for(const k of [...keys].sort()){L.push(k+".json — "+await ghPut("data/savdolar/"+k+".json",pack(k,mm[k]||[]),"Savdolar "+k+" yangilandi"))}
   L.push("sozlamalar.json — "+await ghPut("data/sozlamalar.json",setsPack(),"Sozlamalar yangilandi"));
   L.push("statistika.json — "+await ghPut("data/statistika.json",statPack(true),"Statistika yangilandi",statPack(false)));
-  const ch=L.filter(x=>x.endsWith("yangilandi")).length;ghm(ch+" fayl yangilandi, "+(L.length-ch)+" fayl o‘zgarmagan.");sv("ghlast",Date.now());toast("GitHub’ga saqlandi")}
- catch(e){ghm((L.length?L.join("\n")+"\n":"")+ghErr(e))}}
+  const ch=L.filter(x=>x.endsWith("yangilandi")).length;ghm(ch+" fayl yangilandi, "+(L.length-ch)+" fayl o‘zgarmagan.");sv("ghlast",Date.now());if(!quiet)toast("GitHub’ga saqlandi");return null}
+ catch(e){ghm((L.length?L.join("\n")+"\n":"")+ghErr(e));return e}}
 $("ghsave").onclick=()=>ghSave(false);$("ghfull").onclick=()=>ghSave(true);
-async function ghRestore(){ghm("Yuklanmoqda…");
+async function ghRestore0(){ghm("Yuklanmoqda…");
  try{const get=(p,raw)=>fetch(ghf(p),{headers:ghh(raw),cache:"no-store"});
   const ls=await get("data/savdolar"),st=await get("data/sozlamalar.json");
   if(!ls.ok&&!st.ok){const old=await get(GP_OLD);
@@ -376,21 +395,38 @@ async function ghRestore(){ghm("Yuklanmoqda…");
   sv("ghc",GC);refreshAll();renderBaza();ghm("GitHub’dan tiklandi: "+all.length+" ta savdo ("+nf+" oy fayli)"+(st.ok?", sozlamalar":"")+".");toast("Tiklandi")}
  catch(e){ghm(ghErr(e))}};
 
-async function ghSave(force){$("ghsave").disabled=true;try{await ghSave0(force)}finally{$("ghsave").disabled=false;renderBaza()}}
+let syncing=false,again=false,at=null,retry=null,sstate="off",syncOff=0;
+const autoOn=()=>!!(GH.t&&GH.o&&GH.r)&&ld("ghauto",true);
+const SYT={off:"GitHub ulanmagan",idle:"Qo‘lda saqlash",wait:"Saqlash kutilmoqda…",busy:"Saqlanmoqda…",ok:"GitHub’ga saqlangan",offline:"Internet yo‘q · keyinroq",err:"GitHub xatosi · bosing"};
+function setSync(st){sstate=st;const e=$("sync");e.className="sync "+st;const l=ld("ghlast",0);$("syt").textContent=SYT[st]+(st==="ok"&&l?" · "+ago(l):"")}
+function dirty(){try{if(syncOff)return;if(!autoOn()){setSync(GH.t?"idle":"off");return}clearTimeout(at);setSync("wait");at=setTimeout(()=>syncNow(false,true),6000)}catch(e){}}
+async function syncNow(force,quiet){if(syncing){again=true;return}syncing=true;clearTimeout(at);clearTimeout(retry);setSync("busy");$("ghsave").disabled=true;
+ const e=await ghSave0(force,quiet);syncing=false;$("ghsave").disabled=false;
+ if(!e)setSync("ok");else if(e==="token")setSync("off");else{const m=String(e&&e.message||e),net=!/^\d+$/.test(m);setSync(net?"offline":"err");if(net)retry=setTimeout(()=>{if(autoOn())syncNow(false,true)},30000)}
+ renderBaza();if(again){again=false;dirty()}}
+$("ghsave").onclick=()=>syncNow(false,false);$("ghfull").onclick=()=>syncNow(true,false);
+$("sync").onclick=()=>{if(sstate==="off"){document.querySelector('#nav [data-t="tools"]').click();document.querySelector('#sub3 [data-p="bk"]').click();return}syncNow(false,false)};
+$("gauto").onchange=e=>{sv("ghauto",e.target.checked);if(e.target.checked)dirty();else{clearTimeout(at);setSync(GH.t?"idle":"off")}};
+window.addEventListener("online",()=>{if(autoOn())dirty()});
+async function ghRestore(){syncOff++;try{await ghRestore0()}finally{syncOff--;setSync(autoOn()?"ok":(GH.t?"idle":"off"))}}
 $("ghload").onclick=()=>openPick("Tiklashni tasdiqlang",[["y","Ha, tiklash","Shu qurilmadagi savdolar GitHub’dagi bilan almashtiriladi"],["n","Bekor qilish"]],"n",v=>{if(v==="y")ghRestore()});
 $("ghshow").onchange=e=>{$("ght").type=e.target.checked?"text":"password"};
 const ago=t=>{const d=new Date(t),n=new Date();return d.toDateString()===n.toDateString()?pad(d.getHours())+":"+pad(d.getMinutes()):pad(d.getDate())+"."+pad(d.getMonth()+1)};
-function renderBaza(){const ok=!!(GH.t&&GH.r&&GH.o),last=ld("ghlast",0),mm=monthsOf(),rows=[],chk=(p,key)=>!GC[p]?"y":GC[p].h===hsh(key)?"s":"o";
- $("ghs").textContent=ok?"GitHub bilan ulangan":"Ulanmagan";$("ghr2").textContent=ok?GH.o+"/"+GH.r:"Ulanish sozlamalarida token va omborxonani kiriting";
+function bazaRows(){const mm=monthsOf(),rows=[],chk=(p,key)=>!GC[p]?"y":GC[p].h===hsh(key)?"s":"o";
  Object.keys(mm).sort().reverse().forEach(k=>rows.push([k+".json","savdolar · "+mm[k].length+" ta savdo",chk("data/savdolar/"+k+".json",pack(k,mm[k]))]));
  rows.push(["sozlamalar.json","sozlamalar va yangiliklar",chk("data/sozlamalar.json",setsPack())]);
- rows.push(["statistika.json","faqat ko‘rish uchun",chk("data/statistika.json",statPack(false))]);
+ rows.push(["statistika.json","faqat ko‘rish uchun",chk("data/statistika.json",statPack(false))]);return{rows,mm}}
+const pendN=()=>bazaRows().rows.filter(r=>r[2]!=="s").length;
+function renderBaza(){const ok=!!(GH.t&&GH.r&&GH.o),last=ld("ghlast",0),{rows,mm}=bazaRows();
+ $("ghs").textContent=ok?"GitHub bilan ulangan":"Ulanmagan";$("ghr2").textContent=ok?GH.o+"/"+GH.r:"Ulanish sozlamalarida token va omborxonani kiriting";
  const pend=rows.filter(r=>r[2]!=="s").length;
  $("gbd").textContent=!ok?"":pend?pend+" ta o‘zgargan":"Hammasi saqlangan";$("gbd").className="gbadge "+(pend?"warn":"okb");
  $("gsx").innerHTML="<div><b>"+trades.length+"</b>savdo</div><div><b>"+Object.keys(mm).length+"</b>oy fayli</div><div><b>"+(last?ago(last):"—")+"</b>oxirgi saqlash</div>";
+ $("gauto").checked=ld("ghauto",true);
  $("gfl").innerHTML=rows.map(r=>'<div class="fl2"><span class="ib">'+IC("db")+'</span><div class="fn"><b>'+r[0]+"</b><small>"+r[1]+'</small></div><span class="fchip st-'+r[2]+'">'+(r[2]==="s"?"Saqlangan":r[2]==="y"?"Yangi":"O‘zgargan")+"</span></div>").join("")}
+function initSync(){if(!(GH.t&&GH.o&&GH.r))setSync("off");else if(!ld("ghauto",true))setSync("idle");else if(pendN()>0)dirty();else setSync("ok")}
 
 /* ---- boshlash ---- */
-$("ver").textContent="Versiya: v13";
-applyTh();refreshTz();chips();eKZ();eSS();buildTL();tick();renderJr();renderCal();renderBaza();$("gcon").open=!GH.t;
+$("ver").textContent="Versiya: v14";
+applyTh();refreshTz();chips();eKZ();eSS();buildTL();tick();renderJr();renderCal();renderBaza();$("gcon").open=!GH.t;initSync();
 setInterval(tick,1000);setInterval(buildTL,3600000);

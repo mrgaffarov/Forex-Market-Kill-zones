@@ -8,7 +8,7 @@
 <link rel="icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=13">
+<link rel="stylesheet" href="style.css?v=14">
 <title>Forex Kill Zone</title>
 </head>
 <body>
@@ -48,6 +48,7 @@
 </div>
 
 <div id="jr" class="pg hide">
+  <div class="syncrow"><button class="sync off" id="sync"><i class="sd"></i><span id="syt">GitHub ulanmagan</span></button></div>
   <div class="jhd"><div class="seg4" id="vw"><button data-v="w">Hafta</button><button data-v="m" class="on">Oy</button><button data-v="y">Yil</button><button data-v="a">Hammasi</button></div>
     <div class="seg2" id="mt"><button data-v="r" class="on">R</button><button data-v="u">$</button></div></div>
   <div class="jnav"><button class="nv" id="jprev" aria-label="Oldingi">‹</button><b id="jttl"></b><button class="nv" id="jnext" aria-label="Keyingi">›</button></div>
@@ -80,16 +81,23 @@
     <div id="cal"></div>
   </div>
   <div id="p-risk" class="hide">
-    <section class="card"><h2><span class="ib"><svg class="ic"><use href="#i-cal"/></svg>c</span>Risk kalkulyatori</h2>
-      <label>Balans ($)<div class="pre"><span>$</span><input id="bal" type="number" inputmode="decimal" placeholder="1000"></div></label>
-      <span class="lbl">Tez tanlash — risk</span><div class="chs" id="rkc"></div>
-      <div class="g2"><label>Risk (%)<input id="rk" type="number" step="0.1" inputmode="decimal" placeholder="1"></label><label>Stop-loss (pips)<input id="sl" type="number" inputmode="decimal" placeholder="10"></label></div>
-      <label>1 pip qiymati, 1 lotda ($)<input id="pv" type="number" inputmode="decimal" placeholder="10"></label>
-      <div class="foot">EURUSD kabi USD juftliklarida 1 lot uchun 1 pip = $10.</div></section>
-    <section class="card" id="rres"></section>
+    <section class="card rh" id="rhero"></section>
+    <section class="card"><h2><span class="ib"><svg class="ic"><use href="#i-calc"/></svg></span>Parametrlar</h2>
+      <label>Balans<div class="pre bigp"><span>$</span><input id="bal" type="number" inputmode="decimal" placeholder="1000"></div></label>
+      <span class="lbl">Risk (balansdan)</span><div class="chs" id="rkc"></div>
+      <div class="pre"><input id="rk" type="number" step="0.1" inputmode="decimal" placeholder="1"><span class="sfx">%</span></div>
+      <span class="lbl" style="margin-top:16px;display:block">Stop-loss</span>
+      <div class="step"><button class="sq sstp" data-d="-1" aria-label="Kamaytirish">−</button><div class="pre grow"><input id="sl" type="number" inputmode="decimal" placeholder="10"><span class="sfx">pips</span></div><button class="sq sstp" data-d="1" aria-label="Oshirish">+</button></div>
+      <div class="chs" id="slc" style="margin-top:10px"></div>
+      <button class="fld" id="rpt"><span><small>Instrument turi</small><b id="rptl"></b></span><svg class="ic s"><use href="#i-chev"/></svg></button>
+      <label>1 pip qiymati, 1 lotda<div class="pre"><span>$</span><input id="pv" type="number" inputmode="decimal" placeholder="10"></div></label>
+      <div class="foot">Pip qiymati broker va juftlikka qarab farq qiladi, aniq qiymatni brokeringizdan tekshiring.</div></section>
+    <section class="card hide" id="rplan"></section>
+    <div class="g2"><button id="rcopy"><svg class="ic"><use href="#i-copy"/></svg><span>Nusxalash</span></button><button id="rreset"><svg class="ic"><use href="#i-restore"/></svg><span>Tozalash</span></button></div>
   </div>
   <div id="p-bk" class="hide">
-    <section class="card"><div class="ghh"><span class="ib"><svg class="ic"><use href="#i-db"/></svg></span><div><b id="ghs">Ulanmagan</b><small id="ghr2"></small></div><span class="gbadge" id="gbd"></span></div><div class="gstats" id="gsx"></div></section>
+    <section class="card"><div class="ghh"><span class="ib"><svg class="ic"><use href="#i-db"/></svg></span><div><b id="ghs">Ulanmagan</b><small id="ghr2"></small></div><span class="gbadge" id="gbd"></span></div><div class="gstats" id="gsx"></div>
+      <div class="sw" style="margin:14px 0 0"><span>Avto-saqlash<br><small style="color:var(--mute)">O‘zgarishdan 6 soniya keyin GitHub’ga yuboriladi</small></span><label class="tg"><input type="checkbox" id="gauto"><i></i></label></div></section>
     <div class="g2"><button class="pri bbtn" id="ghsave"><svg class="ic"><use href="#i-copy"/></svg><span>Saqlash</span></button><button class="bbtn" id="ghload"><svg class="ic"><use href="#i-restore"/></svg><span>Tiklash</span></button></div>
     <div class="foot" id="ghm" style="white-space:pre-line;margin:8px 2px 12px"></div>
     <section class="card"><h2>Fayllar</h2><div id="gfl"></div><div class="foot" style="margin-top:8px">Saqlashda faqat “O‘zgargan” va “Yangi” fayllar yoziladi.</div></section>
@@ -154,6 +162,6 @@
   <button class="pri wide bbtn" id="nadd"><svg class="ic"><use href="#i-check"/></svg> Qo‘shish</button>
 </div></div>
 <div class="toast hide" id="toast"></div>
-<script src="app.js?v=13"></script>
+<script src="app.js?v=14"></script>
 </body>
 </html>

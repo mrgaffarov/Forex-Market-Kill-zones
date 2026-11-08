@@ -237,3 +237,17 @@ button.ch{cursor:pointer}.ch.on{background:var(--nyam);border-color:var(--nyam);
 .fchip{font-size:.66rem;font-weight:700;border-radius:99px;padding:3px 9px}.fchip.st-s{background:var(--soft);color:var(--on)}.fchip.st-y{background:rgba(59,130,246,.15);color:#3b82f6}.fchip.st-o{background:rgba(245,158,11,.16);color:#d97706}
 .inl{display:flex;align-items:center;gap:8px;font-size:.8rem;margin:0 0 10px}.inl input{width:auto;margin:0}
 button:disabled{opacity:.55}
+
+.syncrow{display:flex;justify-content:flex-end;margin-bottom:8px}
+.sync{display:inline-flex;align-items:center;gap:7px;padding:5px 12px;border-radius:99px;font-size:.7rem;font-weight:600;color:var(--mute)}
+.sync .sd{width:8px;height:8px;border-radius:50%;background:var(--mute)}
+.sync.ok .sd{background:#16a34a}.sync.busy .sd{background:#3b82f6;animation:pl 1s infinite}.sync.wait .sd{background:#f59e0b;animation:pl 1.4s infinite}.sync.err .sd{background:#dc2626}.sync.offline .sd{background:#f59e0b}
+@keyframes pl{0%,100%{opacity:1}50%{opacity:.25}}
+.rh{border-top:4px solid var(--line)}.rh.lv1{border-top-color:#16a34a}.rh.lv2{border-top-color:#3b82f6}.rh.lv3{border-top-color:#f59e0b}.rh.lv4{border-top-color:#dc2626}
+.rh1{display:flex;justify-content:space-between;align-items:center}
+.lvl{font-size:.66rem;font-weight:700;border-radius:99px;padding:3px 10px;background:var(--bg);color:var(--mute)}
+.lv1 .lvl{background:var(--soft);color:var(--on)}.lv2 .lvl{background:rgba(59,130,246,.15);color:#3b82f6}.lv3 .lvl{background:rgba(245,158,11,.16);color:#d97706}.lv4 .lvl{background:rgba(220,38,38,.14);color:#dc2626}
+.bigp input{font-size:1.5rem;font-weight:700;padding:12px 12px 12px 6px}.bigp span{font-size:1.2rem}
+.sfx{padding:0 14px;color:var(--mute);font-weight:600;font-size:.85rem}
+.step{display:flex;gap:8px;align-items:center}.step .pre{margin-top:0}.pre.grow{flex:1}.step .sq{padding:12px 18px;font-size:1.3rem;border-radius:12px}
+.rt .rtr{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}.rt .rtr .mu{color:var(--mute);font-size:.78rem}
