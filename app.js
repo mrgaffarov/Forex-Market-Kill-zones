@@ -251,7 +251,15 @@ function chips(){$("fml").textContent=fmi.size?[...fmi].join(", "):"Xato yo‘q"
  $("emi").innerHTML=MI.map((x,i)=>'<span class="ch">'+esc(x)+'<button class="cx" data-i="'+i+'" aria-label="O‘chirish">×</button></span>').join("")}
 $("emi").onclick=e=>{const b=e.target.closest(".cx");if(b){MI.splice(+b.dataset.i,1);sv("mi",MI);chips()}};
 $("ami").onclick=()=>{const v=$("nmi").value.trim();if(v&&!MI.includes(v)){MI.push(v);sv("mi",MI);$("nmi").value="";chips()}};
-function openForm(k){$("td").value=k;$("tt").value=nowT();const d=D(k);$("tdt").textContent=d.getUTCDate()+"-"+MS[d.getUTCMonth()]+" "+d.getUTCFullYear()+", "+DNs[d.getUTCDay()]+$("tm").classList.remove("hide")}
+function openForm(k){
+ $("td").value=k;
+ $("tt").value=nowT();
+ const d=D(k);
+ $("tdt").textContent =
+  d.getUTCDate() + "-" + MS[d.getUTCMonth()] + " " +
+  d.getUTCFullYear() + ", " + DNs[d.getUTCDay()];
+ $("tm").classList.remove("hide");
+}
 $("fab").onclick=()=>openForm(selDay||todayK());
 $("tbd").onclick=$("tclose").onclick=()=>$("tm").classList.add("hide");
 $("fmb").onclick=()=>openPick("Xatolar",MI.map(m=>[m,m]),fmi,s=>{fmi=new Set(s);chips()},true);
