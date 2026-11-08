@@ -53,10 +53,10 @@ document.addEventListener("click",e=>{
 document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>{
  document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("a",x===b));
  ["home","jr","stats","tools","set"].forEach(id=>$(id).classList.toggle("hide",id!==b.dataset.t));
- if(b.dataset.t==="jr")renderJr();if(b.dataset.t==="stats")renderStats();if(b.dataset.t==="tools")renderCal();$("fab").classList.toggle("hide",b.dataset.t!=="jr");window.scrollTo(0,0)});
+ if(b.dataset.t==="jr")renderJr();if(b.dataset.t==="stats")renderStats();if(b.dataset.t==="tools"){renderCal();renderBaza()}$("fab").classList.toggle("hide",b.dataset.t!=="jr");window.scrollTo(0,0)});
 document.querySelectorAll("#sub3 button").forEach(b=>b.onclick=()=>{
  document.querySelectorAll("#sub3 button").forEach(x=>x.classList.toggle("on",x===b));
- ["cal","risk","bk"].forEach(p=>$("p-"+p).classList.toggle("hide",p!==b.dataset.p))});
+ ["cal","risk","bk"].forEach(p=>$("p-"+p).classList.toggle("hide",p!==b.dataset.p));if(b.dataset.p==="bk")renderBaza();if(b.dataset.p==="cal")renderCal()});
 
 /* ---- vaqt chizig'i ---- */
 let h12=ld("h12",false),RI=[],VF=null;
@@ -96,27 +96,41 @@ $("pre").value=pre;$("pre").onchange=e=>{pre=+e.target.value;sv("pre",pre)};
 const fixIds=()=>mine.forEach((n,i)=>{if(!n.id)n.id="e"+i+"_"+n.ts});fixIds();
 const evList=()=>mine.slice().sort((a,b)=>a.ts-b.ts);
 const num=v=>parseFloat(String(v).replace(/[^0-9.\-]/g,""));
-function evCard(e,now){const f=e.f||"",p=e.p||"",a=e.a||"",na=num(a),nf=num(f);
+const shortD=m=>m>=1440?Math.floor(m/1440)+" kun":m>=60?Math.floor(m/60)+" s "+pad(Math.floor(m%60))+" d":Math.ceil(m)+" daq";
+function evCard(e,now){const f=e.f||"",p=e.p||"",a=e.a||"",na=num(a),nf=num(f),df=(e.ts-now)/6e4;
  const ar=a&&!isNaN(na)&&!isNaN(nf)&&na!==nf?(na>nf?'<span class="up">▲</span>':'<span class="dn">▼</span>'):"";
- const df=(e.ts-now)/6e4;
- return'<div class="ev"><div class="evh"><b>'+esc(e.t)+'</b><button class="x" data-id="'+e.id+'" aria-label="O‘chirish">'+IC("x")+'</button></div>'
- +'<div class="evm">'+IC("clock").replace('class="ic"','class="ic s"')+fmt(e.ts)+(df>0?" · "+dur(df)+" qoldi":"")+'<span class="imp"><i></i><i></i><i></i></span></div>'
- +'<div class="ev3"><div><small>Haqiqiy '+ar+'</small><input class="ai" data-id="'+e.id+'" value="'+esc(a)+'" placeholder="—"></div><div><small>Prognoz</small><b>'+(esc(f)||"—")+'</b></div><div><small>Oldingi</small><b>'+(esc(p)||"—")+'</b></div></div></div>'}
+ const st=df>0?(df<=60?'<span class="stc hotc2">Tez orada</span>':'<span class="stc">Kutilmoqda</span>'):(a?'<span class="stc ok">Chiqdi</span>':'<span class="stc warn2">Natija kiritilmagan</span>');
+ return'<div class="ev2"><div class="ev2t"><b>'+fmt(e.ts)+"</b><small>"+(df>0?shortD(df):"")+'</small></div><div class="ev2b"><div class="ev2h"><b>'+esc(e.t)+'</b><span class="imp"><i></i><i></i><i></i></span><button class="x" data-id="'+e.id+'" aria-label="O‘chirish">'+IC("x")+"</button></div>"+st
+ +'<div class="ev3"><div><small>Haqiqiy '+ar+'</small><input class="ai" data-id="'+e.id+'" value="'+esc(a)+'" placeholder="—"></div><div><small>Prognoz</small><b>'+(esc(f)||"—")+'</b></div><div><small>Oldingi</small><b>'+(esc(p)||"—")+"</b></div></div></div></div>"}
 function homeAlert(){const now=Date.now(),L=evList().filter(e=>{const df=(e.ts-now)/6e4;return df>-15&&df<=60}).slice(0,3);
  $("al").innerHTML=L.map(e=>{const df=(e.ts-now)/6e4;return'<div class="al"><span class="bd hot"></span><div class="alt"><b>'+esc(e.t)+'</b><small>'+fmt(e.ts)+" · "+(df>0?dur(df)+" qoldi":"hozir chiqdi")+'</small></div><div class="alp">'+(e.a?'<span>Haq. <b>'+esc(e.a)+'</b></span>':"")+(e.f?'<span>Prog. <b>'+esc(e.f)+'</b></span>':"")+(e.p?'<span>Old. <b>'+esc(e.p)+'</b></span>':"")+"</div></div>"}).join("");
  if(snd)L.forEach(e=>{const df=(e.ts-now)/6e4;if(df>0&&df<=60&&!fl[e.id+"a"]){fl[e.id+"a"]=1;beep()}if(df>0&&df<=5&&!fl[e.id+"b"]){fl[e.id+"b"]=1;beep()}})}
-function renderCal(){const now=Date.now(),days={},today=new Date(wall(now,tz)).toISOString().slice(0,10);
- evList().forEach(e=>{const d=new Date(wall(e.ts,tz)).toISOString().slice(0,10);(days[d]=days[d]||[]).push(e)});
- const DN=["Yakshanba","Dushanba","Seshanba","Chorshanba","Payshanba","Juma","Shanba"],MN=["yan","fev","mar","apr","may","iyn","iyl","avg","sen","okt","noy","dek"],K=Object.keys(days).sort();
- const ord=K.filter(k=>k>=today).concat(K.filter(k=>k<today).reverse());
- $("cal").innerHTML=ord.map(k=>{const dt=new Date(k+"T12:00:00Z");return'<div class="dh">'+DN[dt.getUTCDay()]+", "+dt.getUTCDate()+"-"+MN[dt.getUTCMonth()]+(k===today?" · bugun":"")+"</div>"+days[k].map(e=>evCard(e,now)).join("")}).join("")||'<div class="mute">Hali yangilik kiritilmagan.</div>';
- $("calu").textContent="Vaqt "+(fx(tz)!==null?"":tzName()+" ")+uo(tz)+" bo‘yicha kiritiladi. Yangilikka 1 soat qolganda Asosiy sahifada ogohlantirish chiqadi. Haqiqiy qiymatni chiqqach kartada yozasiz."}
+const NFO=[["up","Kutilayotgan"],["past","O‘tgan"],["all","Hammasi"]];let nfl=ld("nfl","up");
+function renderHero(){const now=Date.now(),L=evList(),nb=L.filter(e=>e.ts>now).length;$("nbg").textContent=nb;$("nbg").classList.toggle("hide",!nb);
+ if($("tools").classList.contains("hide")||$("p-cal").classList.contains("hide"))return;
+ const e=L.filter(x=>x.ts>now-9e5)[0];
+ if(!e){$("nhero").innerHTML='<div class="empty"><span class="ib">'+IC("cal")+'</span><b>Yaqin yangilik yo‘q</b><small>“Yangilik” tugmasi bilan qo‘shing</small></div>';return}
+ const df=e.ts-now,hot=df<=36e5,w=new Date(wall(e.ts,tz)),dt=pad(w.getUTCDate())+"."+pad(w.getUTCMonth()+1),
+  cdw=df<=0?"hozir":df>=864e5?Math.floor(df/864e5)+" kun "+Math.floor(df%864e5/36e5)+" soat":pad(Math.floor(df/36e5))+":"+pad(Math.floor(df%36e5/6e4))+":"+pad(Math.floor(df%6e4/1e3));
+ $("nhero").innerHTML='<div class="nh'+(hot?" hot":"")+'"><div class="nh1"><span class="lbl">Keyingi yangilik</span>'+(hot?'<span class="bd hot"></span>':"")+'</div><div class="nh2"><b>'+esc(e.t)+'</b></div><div class="nh3">'+cdw+'</div><div class="nh4">'+dt+" · "+fmt(e.ts)+" · Prognoz "+(esc(e.f)||"—")+" · Oldingi "+(esc(e.p)||"—")+"</div></div>"}
+function renderCal(){const now=Date.now(),all=evList(),L=nfl==="up"?all.filter(e=>e.ts>now-9e5):nfl==="past"?all.filter(e=>e.ts<=now-9e5):all,days={},today=K(new Date(wall(now,tz)));
+ L.forEach(e=>{const d=K(new Date(wall(e.ts,tz)));(days[d]=days[d]||[]).push(e)});
+ const ks=Object.keys(days).sort(),ord=nfl==="past"?ks.reverse():nfl==="all"?ks.filter(k=>k>=today).concat(ks.filter(k=>k<today).reverse()):ks;
+ $("nfv").textContent=NFO.find(o=>o[0]===nfl)[1];
+ $("cal").innerHTML=ord.map(k=>{const dt=D(k);return'<div class="dh">'+DNs[dt.getUTCDay()]+", "+dt.getUTCDate()+"-"+MS[dt.getUTCMonth()]+(k===today?" · bugun":"")+"</div>"+days[k].map(e=>evCard(e,now)).join("")}).join("")||(nfl==="up"?"":'<div class="empty"><b>Yangilik yo‘q</b><small>Bu ro‘yxatda hozircha hech narsa yo‘q</small></div>');
+ renderHero()}
 $("cal").onclick=e=>{const b=e.target.closest(".x");if(b){mine=mine.filter(n=>n.id!==b.dataset.id);sv("nw",mine);renderCal();homeAlert()}};
 $("cal").onchange=e=>{const i=e.target.closest(".ai");if(!i)return;const n=mine.find(x=>x.id===i.dataset.id);if(n){n.a=i.value.trim();sv("nw",mine);renderCal();homeAlert();toast("Saqlandi")}};
+$("nfp").onclick=()=>openPick("Ko‘rsatish",NFO,nfl,v=>{nfl=v;sv("nfl",nfl);renderCal()});
+const NPRE=["NFP","CPI","FOMC","PPI","GDP","Retail Sales","ISM PMI","ADP","Jobless Claims","Unemployment"];
+$("npre").innerHTML=NPRE.map(x=>'<button class="ch" data-n="'+x+'">'+x+"</button>").join("");
+$("npre").onclick=e=>{const b=e.target.closest("[data-n]");if(b)$("nt").value=b.dataset.n};
+$("nopen").onclick=()=>{$("nd").value=new Date(wall(Date.now(),tz)).toISOString().slice(0,10);$("ntm").value="";$("ntz").textContent="Vaqt "+(fx(tz)!==null?"":tzName()+" ")+uo(tz)+" bo‘yicha kiritiladi";$("nm").classList.remove("hide")};
+$("nclose").onclick=$("nbd").onclick=()=>$("nm").classList.add("hide");
 const toUTC=(d,t,z)=>{const[y,m,dd]=d.split("-").map(Number),[h,mi]=t.split(":").map(Number),g=Date.UTC(y,m-1,dd,h,mi);let u=g-(wall(g,z)-g);u=g-(wall(u,z)-u);return u};
-$("nadd").onclick=()=>{if(!$("nd").value||!$("ntm").value||!$("nt").value.trim()){toast("Sana, vaqt va nomni kiriting");return}
- mine.push({id:"e"+Date.now()+Math.floor(Math.random()*1e3),ts:toUTC($("nd").value,$("ntm").value,tz),t:$("nt").value.trim(),f:$("nfc").value.trim(),p:$("npv").value.trim(),a:""});sv("nw",mine);$("nt").value="";$("nfc").value="";$("npv").value="";renderCal();homeAlert();toast("Qo‘shildi")};
-$("nd").value=new Date(wall(Date.now(),tz)).toISOString().slice(0,10);
+$("nadd").onclick=()=>{if(!$("nd").value||!$("ntm").value||!$("nt").value.trim()){toast("Nomi, sana va vaqtni kiriting");return}
+ mine.push({id:"e"+Date.now()+Math.floor(Math.random()*1e3),ts:toUTC($("nd").value,$("ntm").value,tz),t:$("nt").value.trim(),f:$("nfc").value.trim(),p:$("npv").value.trim(),a:""});sv("nw",mine);
+ ["nt","nfc","npv"].forEach(id=>$(id).value="");$("nm").classList.add("hide");renderCal();homeAlert();toast("Yangilik qo‘shildi")};
 
 /* ---- asosiy tick ---- */
 function tick(){
@@ -132,7 +146,7 @@ function tick(){
  $("curkz").textContent="Kill zone: "+(a?a.n:(M.open?"emas (tashqarida)":"bozor yopiq"));
  
  
- homeAlert();if(sheetOpen())renderSheet()}
+ homeAlert();renderHero();if(sheetOpen())renderSheet()}
 
 /* ---- sozlamalar: vaqtlarni tahrirlash ---- */
 function edit(el,arr,l1,l2,cb){el.innerHTML=arr.map((x,i)=>'<div class="er"><i class="dot" style="background:var('+x.c+')"></i><div class="ec"><b>'+x.n+'</b><div class="g2"><label>'+l1+'<input type="time" data-i="'+i+'" data-f="s" value="'+hm(x.s)+'"></label><label>'+l2+'<input type="time" data-i="'+i+'" data-f="e" value="'+hm(x.e)+'"></label></div></div></div>').join("");
@@ -291,8 +305,16 @@ function renderStats(){
 window.addEventListener("resize",()=>{if(!$("stats").classList.contains("hide"))drawPnl()});
 
 /* ---- risk va zaxira ---- */
-function calc(){const b=+$("bal").value,r=+$("rk").value,s=+$("sl").value,p=+$("pv").value;
- $("lot").innerHTML=(b&&r&&s&&p)?'Risk: <b>$'+(b*r/100).toFixed(2)+'</b> · Lot: <b>'+(b*r/100/(s*p)).toFixed(2)+"</b>":"Maydonlarni to‘ldiring";sv("calc",[b,r,s,p])}
+function calc(){const b=+$("bal").value,r=+$("rk").value,sl=+$("sl").value,p=+$("pv").value;sv("calc",[b,r,sl,p]);
+ document.querySelectorAll("#rkc .ch").forEach(c=>c.classList.toggle("on",+c.dataset.r===r));
+ if(!(b>0&&r>0&&sl>0&&p>0)){$("rres").innerHTML='<div class="empty" style="margin:0;border:0;padding:8px"><span class="ib">'+IC("calc")+"</span><b>Natija shu yerda chiqadi</b><small>Balans, risk, stop-loss va pip qiymatini kiriting</small></div>";return}
+ const risk=b*r/100,lot=risk/(sl*p),m=v=>"$"+v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+ $("rres").innerHTML=(r>3?'<div class="warn" style="margin-bottom:12px"><b>Yuqori risk:</b> bitta savdoda hisobning '+r+'% xavf ostida. Odatda 0.5–2% tavsiya etiladi.</div>':"")
+  +'<span class="lbl">Tavsiya etilgan lot</span><div class="lotv">'+lot.toFixed(2)+"<small> lot</small></div>"
+  +'<div class="rrow"><div><b>'+m(risk)+'</b>Risk summasi</div><div><b>'+(lot*10).toFixed(1)+'</b>Mini lot</div><div><b>'+(lot*100).toFixed(0)+'</b>Mikro lot</div></div>'
+  +'<div class="rt"><div class="rth">Maqsad foyda (Risk : Foyda)</div>'+[1,2,3].map(k=>'<div class="rtr"><span>1 : '+k+" · "+(sl*k)+' pips</span><b>+'+m(risk*k)+"</b></div>").join("")+'</div><div class="foot" style="margin-top:8px">1 pip = '+m(lot*p)+" (shu lot bilan)</div>"}
+$("rkc").innerHTML=[0.5,1,2,3].map(x=>'<button class="ch" data-r="'+x+'">'+x+"%</button>").join("");
+$("rkc").onclick=e=>{const b=e.target.closest("[data-r]");if(b){$("rk").value=b.dataset.r;calc()}};
 {const c=ld("calc",[1000,1,10,10]);["bal","rk","sl","pv"].forEach((id,i)=>{$(id).value=c[i]||"";$(id).oninput=calc});calc()}
 $("exp").onclick=()=>{const s=JSON.stringify({kz:KZ,ss:SS.map(y=>[y.s,y.e]),tr:trades,nw:mine,mi:MI});$("bk").value=s;try{navigator.clipboard.writeText(s)}catch(e){}$("bkm").textContent="Nusxalandi. Telegram “Saved messages” ga joylab qo‘ying.";toast("Nusxalandi")};
 $("imp").onclick=()=>{try{const o=JSON.parse($("bk").value);
@@ -304,21 +326,71 @@ $("imp").onclick=()=>{try{const o=JSON.parse($("bk").value);
 function applyData(o){if(o.kz&&o.kz.length===4){KZ=o.kz;sv("kz",KZ)}if(Array.isArray(o.ss))o.ss.forEach((v,i)=>{if(SS[i]&&v){SS[i].s=v[0];SS[i].e=v[1]}});sv("ss",SS.map(y=>[y.s,y.e]));
  if(Array.isArray(o.tr)){trades=o.tr;sv("tr",trades)}if(Array.isArray(o.mi)){MI=o.mi;sv("mi",MI)}if(Array.isArray(o.nw)){mine=o.nw.filter(n=>n.ts);fixIds();sv("nw",mine)}chips();eKZ();eSS();buildTL();renderJr();renderCal();tick()}
 $("imp").onclick=()=>{try{applyData(JSON.parse($("bk").value));$("bkm").textContent="Tiklandi.";toast("Tiklandi")}catch(e){$("bkm").textContent="Matn noto‘g‘ri.";toast("Matn noto‘g‘ri")}};
-const GH={o:ld("gho","mrgaffarov"),r:ld("ghr","killzone-data"),t:ld("ght","")},GP="data/killzone-data.json";
-["gho","ghr","ght"].forEach(id=>{$(id).value=GH[id[2]];$(id).onchange=()=>{GH[id[2]]=$(id).value.trim();sv(id,GH[id[2]])}});
+const GH={o:ld("gho","mrgaffarov"),r:ld("ghr","killzone-data"),t:ld("ght","")},GP_OLD="data/killzone-data.json";
+["gho","ghr","ght"].forEach(id=>{$(id).value=GH[id[2]];$(id).onchange=()=>{GH[id[2]]=$(id).value.trim();sv(id,GH[id[2]]);renderBaza()}});
 const b64=s=>btoa(unescape(encodeURIComponent(s))),unb64=s=>decodeURIComponent(escape(atob(s.replace(/\s/g,""))));
-const snap=()=>JSON.stringify({app:"killzone",saved:new Date().toISOString(),kz:KZ,ss:SS.map(y=>[y.s,y.e]),tr:trades,nw:mine,mi:MI},null,1);
-const ghu=()=>"https://api.github.com/repos/"+GH.o+"/"+GH.r+"/contents/"+GP,ghm=t=>{$("ghm").textContent=t};
-const ghh=()=>{const h={Accept:"application/vnd.github+json"};if(GH.t)h.Authorization="Bearer "+GH.t;return h};
-$("ghsave").onclick=async()=>{if(!GH.t){ghm("Avval tokenni kiriting.");return}ghm("Saqlanmoqda…");
- try{let sha;const g=await fetch(ghu(),{headers:ghh(),cache:"no-store"});if(g.ok)sha=(await g.json()).sha;else if(g.status!==404){ghm(g.status===401?"Token noto‘g‘ri.":g.status===403?"Ruxsat yo‘q (token huquqini tekshiring).":"Xato: "+g.status);return}
-  const r=await fetch(ghu(),{method:"PUT",headers:{...ghh(),"Content-Type":"application/json"},body:JSON.stringify({message:"Ma’lumot saqlandi "+new Date().toISOString().slice(0,16),content:b64(snap()),sha})});
-  if(r.ok){ghm("GitHub’ga saqlandi.");toast("GitHub’ga saqlandi")}else ghm(r.status===404?"Omborxona topilmadi (nom yoki token huquqini tekshiring).":r.status===401||r.status===403?"Ruxsat yo‘q.":"Xato: "+r.status)}catch(e){ghm("Internet yo‘q yoki ulanmadi.")}};
-$("ghload").onclick=async()=>{ghm("Yuklanmoqda…");try{const g=await fetch(ghu(),{headers:ghh(),cache:"no-store"});
- if(g.status===404){ghm("Hali saqlanmagan yoki omborxona topilmadi (private bo‘lsa token kerak).");return}if(!g.ok){ghm("Xato: "+g.status);return}
- applyData(JSON.parse(unb64((await g.json()).content)));ghm("GitHub’dan tiklandi.");toast("Tiklandi")}catch(e){ghm("Tiklab bo‘lmadi.")}};
+const ghf=p=>"https://api.github.com/repos/"+GH.o+"/"+GH.r+"/contents/"+p,ghm=t=>{$("ghm").textContent=t};
+const ghh=raw=>{const h={Accept:raw?"application/vnd.github.raw+json":"application/vnd.github+json"};if(GH.t)h.Authorization="Bearer "+GH.t;return h};
+const hsh=x=>{let h=5381;for(let i=0;i<x.length;i++)h=((h<<5)+h+x.charCodeAt(i))|0;return String(h)};
+let GC=ld("ghc",{});
+const monthsOf=()=>{const m={};trades.forEach(t=>{const k=(t.d||"").slice(0,7)||dk(tms(t)).slice(0,7);(m[k]=m[k]||[]).push(t)});return m};
+const pack=(k,a)=>JSON.stringify({v:1,oy:k,savdolar:a.slice().sort((x,y)=>tms(x)-tms(y))},null,1);
+const setsPack=()=>JSON.stringify({v:1,vaqtlar:KZ,sessiyalar:SS.map(y=>[y.s,y.e]),xatolar:MI,yangiliklar:mine,afzalliklar:{birlik:mt,hafta_oxiri:wk,davr:sp,tahlil:an,grafik:cm,mavzu:th,soat12:h12,tovush:snd,ogohlantirish:pre,zona:tz,utc:cu}},null,1);
+function statPack(ts){const mm=monthsOf(),agg=a=>{let tp=0,sl=0,r=0,u=0,gwR=0,glR=0,gwU=0,glU=0;a.forEach(t=>{const c=oc(t);if(c==="w")tp++;else if(c==="l")sl++;const rv=+t.r||0,uv=+t.u||0;r+=rv;u+=uv;if(rv>0)gwR+=rv;else glR-=rv;if(uv>0)gwU+=uv;else glU-=uv});const n=tp+sl;
+  return{savdo:a.length,tp,sl,winrate:n?+(tp/n*100).toFixed(1):null,pnl_r:+r.toFixed(2),pnl_usd:+u.toFixed(2),profit_factor_r:glR?+(gwR/glR).toFixed(2):null,profit_factor_usd:glU?+(gwU/glU).toFixed(2):null}},oy={};
+ Object.keys(mm).sort().forEach(k=>oy[k]=agg(mm[k]));const o={v:1,eslatma:"Savdolardan hisoblangan xulosa. Ilova uni o‘qimaydi, faqat GitHub’da ko‘rish uchun.",jami:agg(trades),oylar:oy};if(ts)o.yangilangan=new Date().toISOString();return JSON.stringify(o,null,1)}
+function applySets(o){if(o.vaqtlar&&o.vaqtlar.length===4){KZ=o.vaqtlar;sv("kz",KZ)}
+ if(Array.isArray(o.sessiyalar)){o.sessiyalar.forEach((v,i)=>{if(SS[i]&&v){SS[i].s=v[0];SS[i].e=v[1]}});sv("ss",SS.map(y=>[y.s,y.e]))}
+ if(Array.isArray(o.xatolar)){MI=o.xatolar;sv("mi",MI)}
+ if(Array.isArray(o.yangiliklar)){mine=o.yangiliklar.filter(n=>n.ts);fixIds();sv("nw",mine)}
+ const a=o.afzalliklar||{};
+ if(a.birlik){mt=a.birlik;sv("mt",mt)}if(a.hafta_oxiri!==undefined){wk=a.hafta_oxiri;sv("wk",wk)}if(a.davr!==undefined){sp=a.davr;sv("sp",sp)}if(a.tahlil){an=a.tahlil;sv("an",an)}if(a.grafik){cm=a.grafik;sv("cm",cm)}
+ if(a.mavzu){th=a.mavzu;sv("th",th);applyTh()}if(a.soat12!==undefined){h12=a.soat12;sv("h12",h12);$("h24").checked=!h12}if(a.tovush!==undefined){snd=a.tovush;sv("snd",snd);$("snd").checked=snd}if(a.ogohlantirish!==undefined){pre=a.ogohlantirish;sv("pre",pre);$("pre").value=pre}
+ if(a.utc!==undefined){cu=a.utc;sv("cu",cu)}if(a.zona){tz=a.zona;if(fx(tz)===null&&!ZN.some(z=>z[0]===tz))tz="Asia/Tashkent";sv("tz",tz)}refreshTz()}
+const refreshAll=()=>{chips();eKZ();eSS();buildTL();renderJr();renderCal();tick()};
+const ghErr=e=>{const m=String(e&&e.message||e);return m==="401"?"Token noto‘g‘ri.":m==="403"?"Ruxsat yo‘q (token huquqini tekshiring).":m==="404"?"Omborxona topilmadi (nom yoki token huquqini tekshiring).":/^\d+$/.test(m)?"Xato: "+m:"Internet yo‘q yoki ulanmadi."};
+async function ghPut(path,content,msg,hkey){const key=hsh(hkey===undefined?content:hkey),c=GC[path];if(c&&c.h===key)return"o‘zgarmagan";let sha=c&&c.sha;
+ for(let a=0;a<2;a++){const body={message:msg,content:b64(content)};if(sha)body.sha=sha;
+  const r=await fetch(ghf(path),{method:"PUT",headers:{...ghh(),"Content-Type":"application/json"},body:JSON.stringify(body)});
+  if(r.ok){const j=await r.json();GC[path]={h:key,sha:j.content.sha};sv("ghc",GC);return"yangilandi"}
+  if((r.status===409||r.status===422)&&a===0){const g=await fetch(ghf(path),{headers:ghh()});sha=g.ok?(await g.json()).sha:undefined;continue}
+  throw new Error(r.status)}}
+async function ghSave0(force){if(!GH.t){ghm("Avval tokenni kiriting.");return}if(force){GC={};sv("ghc",GC)}ghm("Saqlanmoqda…");const L=[];
+ try{const mm=monthsOf(),keys=new Set(Object.keys(mm));Object.keys(GC).forEach(p=>{const m=p.match(/^data\/savdolar\/(\d{4}-\d{2})\.json$/);if(m)keys.add(m[1])});
+  for(const k of [...keys].sort()){L.push(k+".json — "+await ghPut("data/savdolar/"+k+".json",pack(k,mm[k]||[]),"Savdolar "+k+" yangilandi"))}
+  L.push("sozlamalar.json — "+await ghPut("data/sozlamalar.json",setsPack(),"Sozlamalar yangilandi"));
+  L.push("statistika.json — "+await ghPut("data/statistika.json",statPack(true),"Statistika yangilandi",statPack(false)));
+  const ch=L.filter(x=>x.endsWith("yangilandi")).length;ghm(ch+" fayl yangilandi, "+(L.length-ch)+" fayl o‘zgarmagan.");sv("ghlast",Date.now());toast("GitHub’ga saqlandi")}
+ catch(e){ghm((L.length?L.join("\n")+"\n":"")+ghErr(e))}}
+$("ghsave").onclick=()=>ghSave(false);$("ghfull").onclick=()=>ghSave(true);
+async function ghRestore(){ghm("Yuklanmoqda…");
+ try{const get=(p,raw)=>fetch(ghf(p),{headers:ghh(raw),cache:"no-store"});
+  const ls=await get("data/savdolar"),st=await get("data/sozlamalar.json");
+  if(!ls.ok&&!st.ok){const old=await get(GP_OLD);
+   if(old.ok){applyData(JSON.parse(unb64((await old.json()).content)));renderBaza();ghm("Eski formatdan tiklandi. Endi “Saqlash” yangi tuzilmada yozadi.");toast("Tiklandi");return}
+   ghm("Hali saqlanmagan yoki omborxona topilmadi (private bo‘lsa token kerak).");return}
+  let all=[],nf=0;
+  if(ls.ok){const files=(await ls.json()).filter(f=>/^\d{4}-\d{2}\.json$/.test(f.name)),res=await Promise.all(files.map(async f=>{const r=await get(f.path,true);if(!r.ok)throw new Error(r.status);const tx=await r.text();GC[f.path]={h:hsh(tx),sha:f.sha};return JSON.parse(tx).savdolar||[]}));res.forEach(a=>{all=all.concat(a);nf++})}
+  if(ls.ok){trades=all;sv("tr",trades)}
+  if(st.ok){const j=await st.json(),tx=unb64(j.content);GC["data/sozlamalar.json"]={h:hsh(tx),sha:j.sha};applySets(JSON.parse(tx))}
+  sv("ghc",GC);refreshAll();renderBaza();ghm("GitHub’dan tiklandi: "+all.length+" ta savdo ("+nf+" oy fayli)"+(st.ok?", sozlamalar":"")+".");toast("Tiklandi")}
+ catch(e){ghm(ghErr(e))}};
+
+async function ghSave(force){$("ghsave").disabled=true;try{await ghSave0(force)}finally{$("ghsave").disabled=false;renderBaza()}}
+$("ghload").onclick=()=>openPick("Tiklashni tasdiqlang",[["y","Ha, tiklash","Shu qurilmadagi savdolar GitHub’dagi bilan almashtiriladi"],["n","Bekor qilish"]],"n",v=>{if(v==="y")ghRestore()});
+$("ghshow").onchange=e=>{$("ght").type=e.target.checked?"text":"password"};
+const ago=t=>{const d=new Date(t),n=new Date();return d.toDateString()===n.toDateString()?pad(d.getHours())+":"+pad(d.getMinutes()):pad(d.getDate())+"."+pad(d.getMonth()+1)};
+function renderBaza(){const ok=!!(GH.t&&GH.r&&GH.o),last=ld("ghlast",0),mm=monthsOf(),rows=[],chk=(p,key)=>!GC[p]?"y":GC[p].h===hsh(key)?"s":"o";
+ $("ghs").textContent=ok?"GitHub bilan ulangan":"Ulanmagan";$("ghr2").textContent=ok?GH.o+"/"+GH.r:"Ulanish sozlamalarida token va omborxonani kiriting";
+ Object.keys(mm).sort().reverse().forEach(k=>rows.push([k+".json","savdolar · "+mm[k].length+" ta savdo",chk("data/savdolar/"+k+".json",pack(k,mm[k]))]));
+ rows.push(["sozlamalar.json","sozlamalar va yangiliklar",chk("data/sozlamalar.json",setsPack())]);
+ rows.push(["statistika.json","faqat ko‘rish uchun",chk("data/statistika.json",statPack(false))]);
+ const pend=rows.filter(r=>r[2]!=="s").length;
+ $("gbd").textContent=!ok?"":pend?pend+" ta o‘zgargan":"Hammasi saqlangan";$("gbd").className="gbadge "+(pend?"warn":"okb");
+ $("gsx").innerHTML="<div><b>"+trades.length+"</b>savdo</div><div><b>"+Object.keys(mm).length+"</b>oy fayli</div><div><b>"+(last?ago(last):"—")+"</b>oxirgi saqlash</div>";
+ $("gfl").innerHTML=rows.map(r=>'<div class="fl2"><span class="ib">'+IC("db")+'</span><div class="fn"><b>'+r[0]+"</b><small>"+r[1]+'</small></div><span class="fchip st-'+r[2]+'">'+(r[2]==="s"?"Saqlangan":r[2]==="y"?"Yangi":"O‘zgargan")+"</span></div>").join("")}
 
 /* ---- boshlash ---- */
-$("ver").textContent="Versiya: v11";
-applyTh();refreshTz();chips();eKZ();eSS();buildTL();tick();renderJr();renderCal();
+$("ver").textContent="Versiya: v13";
+applyTh();refreshTz();chips();eKZ();eSS();buildTL();tick();renderJr();renderCal();renderBaza();$("gcon").open=!GH.t;
 setInterval(tick,1000);setInterval(buildTL,3600000);

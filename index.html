@@ -8,7 +8,7 @@
 <link rel="icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=11">
+<link rel="stylesheet" href="style.css?v=13">
 <title>Forex Kill Zone</title>
 </head>
 <body>
@@ -70,34 +70,39 @@
 
 <div id="tools" class="pg hide">
   <div class="sub3" id="sub3">
-    <button data-p="cal" class="on"><svg class="ic"><use href="#i-cal"/></svg>Yangiliklar</button>
-    <button data-p="risk"><svg class="ic"><use href="#i-calc"/></svg>Risk</button>
-    <button data-p="bk"><svg class="ic"><use href="#i-db"/></svg>Baza</button>
+    <button data-p="cal" class="on"><svg class="ic"><use href="#i-cal"/></svg><span>Yangiliklar</span><i class="bgc hide" id="nbg"></i></button>
+    <button data-p="risk"><svg class="ic"><use href="#i-cal"/></svg>c<span>Risk</span></button>
+    <button data-p="bk"><svg class="ic"><use href="#i-db"/></svg><span>Baza</span></button>
   </div>
   <div id="p-cal">
-    <details class="card" open><summary><svg class="ic"><use href="#i-plus"/></svg>Yangilik qo‘shish</summary>
-      <div class="g2" style="margin-top:10px"><label>Sana<input id="nd" type="date"></label><label>Vaqt<input id="ntm" type="time"></label></div>
-      <label>Nomi<input id="nt" placeholder="NFP, CPI, FOMC ..."></label>
-      <div class="g2"><label>Prognoz<input id="nfc" placeholder="65K"></label><label>Oldingi<input id="npv" placeholder="29K"></label></div>
-      <button class="pri wide" id="nadd" style="margin-top:4px"><svg class="ic"><use href="#i-check"/></svg>Qo‘shish</button>
-      <div class="foot" id="calu"></div></details>
+    <div id="nhero"></div>
+    <div class="fr"><button class="fp" id="nfp"><span><small>Ko‘rsatish</small><b id="nfv"></b></span><svg class="ic s"><use href="#i-chev"/></svg></button><button class="pri nadd2" id="nopen"><svg class="ic"><use href="#i-plus"/></svg><span>Yangilik</span></button></div>
     <div id="cal"></div>
   </div>
-  <div id="p-risk" class="hide"><section class="card"><h2><svg class="ic"><use href="#i-calc"/></svg>Risk kalkulyatori</h2>
-    <div class="g2"><label>Balans ($)<input id="bal" type="number" inputmode="decimal"></label><label>Risk (%)<input id="rk" type="number" step="0.1" inputmode="decimal"></label>
-    <label>Stop-loss (pips)<input id="sl" type="number" inputmode="decimal"></label><label>1 pip, 1 lotda ($)<input id="pv" type="number" inputmode="decimal"></label></div>
-    <div class="res" id="lot"></div><div class="foot">EURUSD kabi USD juftliklarida 1 lot uchun 1 pip = $10.</div></section></div>
+  <div id="p-risk" class="hide">
+    <section class="card"><h2><span class="ib"><svg class="ic"><use href="#i-cal"/></svg>c</span>Risk kalkulyatori</h2>
+      <label>Balans ($)<div class="pre"><span>$</span><input id="bal" type="number" inputmode="decimal" placeholder="1000"></div></label>
+      <span class="lbl">Tez tanlash — risk</span><div class="chs" id="rkc"></div>
+      <div class="g2"><label>Risk (%)<input id="rk" type="number" step="0.1" inputmode="decimal" placeholder="1"></label><label>Stop-loss (pips)<input id="sl" type="number" inputmode="decimal" placeholder="10"></label></div>
+      <label>1 pip qiymati, 1 lotda ($)<input id="pv" type="number" inputmode="decimal" placeholder="10"></label>
+      <div class="foot">EURUSD kabi USD juftliklarida 1 lot uchun 1 pip = $10.</div></section>
+    <section class="card" id="rres"></section>
+  </div>
   <div id="p-bk" class="hide">
-    <section class="card"><h2><svg class="ic"><use href="#i-db"/></svg>GitHub baza</h2>
-      <div class="foot" style="margin:-4px 0 10px">Ma’lumot GitHub omborxonasiga <b>data/killzone-data.json</b> fayli bo‘lib saqlanadi. Tarixi GitHub saytida ko‘rinadi.</div>
-      <div class="g2"><label>Egasi<input id="gho"></label><label>Omborxona<input id="ghr"></label></div>
+    <section class="card"><div class="ghh"><span class="ib"><svg class="ic"><use href="#i-db"/></svg></span><div><b id="ghs">Ulanmagan</b><small id="ghr2"></small></div><span class="gbadge" id="gbd"></span></div><div class="gstats" id="gsx"></div></section>
+    <div class="g2"><button class="pri bbtn" id="ghsave"><svg class="ic"><use href="#i-copy"/></svg><span>Saqlash</span></button><button class="bbtn" id="ghload"><svg class="ic"><use href="#i-restore"/></svg><span>Tiklash</span></button></div>
+    <div class="foot" id="ghm" style="white-space:pre-line;margin:8px 2px 12px"></div>
+    <section class="card"><h2>Fayllar</h2><div id="gfl"></div><div class="foot" style="margin-top:8px">Saqlashda faqat “O‘zgargan” va “Yangi” fayllar yoziladi.</div></section>
+    <details class="card" id="gcon"><summary><svg class="ic"><use href="#i-gear"/></svg><span>Ulanish sozlamalari</span></summary>
+      <div class="g2" style="margin-top:12px"><label>Egasi<input id="gho"></label><label>Omborxona<input id="ghr"></label></div>
       <label>Token<input id="ght" type="password" autocomplete="off" placeholder="github_pat_..."></label>
-      <div class="g2"><button class="pri" id="ghsave"><svg class="ic"><use href="#i-copy"/></svg>Saqlash</button><button id="ghload"><svg class="ic"><use href="#i-restore"/></svg>Tiklash</button></div>
-      <div class="foot" id="ghm" style="margin-top:8px"></div></section>
-    <section class="card"><h2>Qo‘lda zaxira</h2>
-      <textarea id="bk" placeholder="Zaxira matni shu yerda chiqadi. Tiklash uchun matnni shu yerga joylang."></textarea>
-      <div class="g2" style="margin-top:10px"><button id="exp"><svg class="ic"><use href="#i-copy"/></svg>Nusxalash</button><button id="imp"><svg class="ic"><use href="#i-restore"/></svg>Tiklash</button></div>
-      <div class="foot" id="bkm"></div></section>
+      <label class="inl"><input type="checkbox" id="ghshow">Tokenni ko‘rsatish</label>
+      <div class="foot">Omborxona Private bo‘lsin. Token faqat shu omborxona va “Contents: Read and write” huquqi bilan yaratiladi.</div></details>
+    <details class="card"><summary><svg class="ic"><use href="#i-restore"/></svg><span>Qo‘shimcha</span></summary>
+      <textarea id="bk" style="margin-top:12px" placeholder="Qo‘lda zaxira matni shu yerda chiqadi. Tiklash uchun matnni shu yerga joylang."></textarea>
+      <div class="g2" style="margin-top:10px"><button id="exp"><svg class="ic"><use href="#i-copy"/></svg><span>Nusxalash</span></button><button id="imp"><svg class="ic"><use href="#i-restore"/></svg><span>Tiklash</span></button></div>
+      <div class="foot" id="bkm"></div>
+      <button class="wide" id="ghfull" style="margin:12px 0 0">Hammasini qayta yozish (GitHub)</button></details>
   </div>
 </div>
 
@@ -140,7 +145,15 @@
   <button class="pri wide bbtn" id="add"><svg class="ic"><use href="#i-check"/></svg>Savdoni saqlash</button>
 </div></div>
 <div class="sheet hide" id="pick" style="z-index:55"><div class="bdp" id="pbd"></div><div class="sp"><div class="grab"></div><h2 id="ptl"></h2><div id="pop"></div><button class="pri wide bbtn hide" id="pok">Tayyor</button></div></div>
+<div class="sheet hide" id="nm"><div class="bdp" id="nbd"></div><div class="sp tall"><div class="grab"></div>
+  <div class="thd"><div><h2 style="margin:0">Yangilik qo‘shish</h2><div class="foot" id="ntz"></div></div><button class="x" id="nclose" aria-label="Yopish"><svg class="ic"><use href="#i-x"/></svg></button></div>
+  <span class="lbl">Tez tanlash</span><div class="chs" id="npre"></div>
+  <label>Nomi<input id="nt" placeholder="NFP, CPI, FOMC ..."></label>
+  <div class="g2"><label>Sana<input id="nd" type="date"></label><label>Vaqt<input id="ntm" type="time"></label></div>
+  <div class="g2"><label>Prognoz<input id="nfc" placeholder="65K"></label><label>Oldingi<input id="npv" placeholder="29K"></label></div>
+  <button class="pri wide bbtn" id="nadd"><svg class="ic"><use href="#i-check"/></svg> Qo‘shish</button>
+</div></div>
 <div class="toast hide" id="toast"></div>
-<script src="app.js?v=11"></script>
+<script src="app.js?v=13"></script>
 </body>
 </html>
