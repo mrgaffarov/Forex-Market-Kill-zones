@@ -201,8 +201,7 @@ const dim=(y,m)=>new Date(Date.UTC(y,m+1,0)).getUTCDate();
 const rng=()=>{const d=D(anc),y=d.getUTCFullYear(),m=d.getUTCMonth();if(vw==="w"){const s=addD(anc,-dow(anc));return[s,addD(s,6)]}if(vw==="m")return[y+"-"+pad(m+1)+"-01",y+"-"+pad(m+1)+"-"+pad(dim(y,m))];if(vw==="y")return[y+"-01-01",y+"-12-31"];return null};
 const inR=(t,R)=>{if(!R)return true;const k=dk(tms(t));return k>=R[0]&&k<=R[1]};
 function ttl(){const d=D(anc);if(vw==="m")return MN[d.getUTCMonth()]+" "+d.getUTCFullYear();if(vw==="y")return""+d.getUTCFullYear();if(vw==="a")return"Barcha vaqt";const s=D(addD(anc,-dow(anc))),e=D(addD(anc,6-dow(anc)));return s.getUTCDate()+" "+MS[s.getUTCMonth()]+" – "+e.getUTCDate()+" "+MS[e.getUTCMonth()]+" "+e.getUTCFullYear()}
-const cell=(k,o)=>{const a='<button class="cd '+dcl(o)+(o?" flp":"")+(k===selDay?" sel":"")+(k===todayK()?" tod":"")+'" data-k="'+k+'">',dn='<span class="dn">'+D(k).getUTCDate()+"</span>";
- return o?a+'<span class="fc"><span class="ff">'+dn+"<b>"+fv(o.s,1)+"</b><small>"+o.n+" savdo</small></span>"+backHTML()+"</span></button>":a+dn+"<em>—</em></button>"};
+const cell=(k,o)=>'<button class="cd '+dcl(o)+(k===selDay?" sel":"")+(k===todayK()?" tod":"")+'" data-k="'+k+'"><span class="dn">'+D(k).getUTCDate()+"</span>"+(o?"<b>"+fv(o.s,1)+"</b><small>"+o.n+" savdo</small>":"<em>—</em>")+"</button>";
 function calHTML(days){const d=D(anc),y=d.getUTCFullYear(),m=d.getUTCMonth(),W7=wk||Object.keys(days).some(k=>dow(k)>4&&(vw==="m"?k.slice(0,7)===y+"-"+pad(m+1):vw==="w"?k>=addD(anc,-dow(anc))&&k<=addD(anc,6-dow(anc)):false)),c=W7?7:5,head='<div class="cg c'+c+'">'+WD.slice(0,c).map(x=>'<span class="wd">'+x+"</span>").join("")+"</div>";
  if(vw==="m"){const cs=[];for(let i=1;i<=dim(y,m);i++){const k=y+"-"+pad(m+1)+"-"+pad(i),w=dow(k);if(!W7&&w>4)continue;if(!cs.length)for(let j=0;j<w;j++)cs.push("<i></i>");cs.push(cell(k,days[k]))}return head+'<div class="cg c'+c+'">'+cs.join("")+"</div>"}
  if(vw==="w"){const s=addD(anc,-dow(anc)),cs=[];for(let i=0;i<c;i++){const k=addD(s,i);cs.push(cell(k,days[k]))}return head+'<div class="cg c'+c+'">'+cs.join("")+"</div>"}
@@ -229,7 +228,7 @@ function renderJr(){
  const days=mapDays(),R=rng(),T=trades.filter(t=>inR(t,R)),n=T.length,w=T.filter(t=>oc(t)==="w").length,l=T.filter(t=>oc(t)==="l").length,tot=T.reduce((a,t)=>a+val(t),0);
  $("jttl").textContent=ttl();$("jprev").style.visibility=$("jnext").style.visibility=vw==="a"?"hidden":"visible";
  $("jwk").style.display=(vw==="m"||vw==="w")?"":"none";
- $("jcal").innerHTML=calHTML(days);stagger();
+ $("jcal").innerHTML=calHTML(days);
  $("jwk").textContent="Shanba/Yakshanba: "+(wk?"ko‘rinadi":$("jcal").innerHTML.includes("cg c7")?"ko‘rinadi (savdo bor)":"yashirin");
  $("jtot").textContent=fv(tot,1);$("jtot").className="big "+cl(tot);
  const st=streak(T),g=grp(T,t=>[t.kz]),bk=Object.keys(g).filter(k=>g[k].r>0).sort((a,c)=>g[c].r-g[a].r)[0];
@@ -445,27 +444,17 @@ async function ghRestore0(){ghm("Yuklanmoqda…");
 let syncing=false,again=false,at=null,retry=null,sstate="off",syncOff=0;
 const autoOn=()=>!!(GH.t&&GH.o&&GH.r)&&ld("ghauto",true);
 const SYT={off:"GitHub ulanmagan",idle:"Qo‘lda saqlash",wait:"Saqlash kutilmoqda",busy:"GitHub’ga saqlanmoqda",ok:"GitHub’ga saqlandi",offline:"Internet yo‘q",err:"GitHub xatosi"};
-const SYS={off:"Ulash uchun bosing",idle:"Bosib saqlang",wait:"3 soniyada avtomatik saqlanadi",offline:"Keyinroq qayta uriniladi",err:"Bosib qayta urining"};
-let PG=0,SGN="",BKH="",ftm=null;
-const jcEl=()=>$("jcal");
-const bkIcon=()=>sstate==="busy"?PG+"%":sstate==="ok"?IC("check"):(sstate==="err"||sstate==="offline")?"!":IC("db");
-function paintBack(){BKH=bkIcon();document.querySelectorAll("#jcal .fb .pc").forEach(e=>{e.innerHTML=BKH})}
-function backHTML(){return'<span class="fb"><span class="fbr"><svg viewBox="0 0 36 36" aria-hidden="true"><circle class="sbg" cx="18" cy="18" r="15"/><circle class="sfg" cx="18" cy="18" r="15" pathLength="100"/></svg><span class="pc">'+bkIcon()+"</span></span></span>"}
-function stagger(){document.querySelectorAll("#jcal .flp").forEach((e,i)=>e.style.setProperty("--i",Math.min(i,14)))}
-function flip(on){jcEl().classList.toggle("flipped",on)}
-function setProg(p){PG=Math.max(0,Math.min(100,Math.round(p)));const j=jcEl();j.style.setProperty("--p",PG+"%");j.style.setProperty("--do",100-PG);if(sstate==="busy")paintBack()}
-function setSync(st){const pv=sstate,fresh=st==="ok"&&pv==="busy";sstate=st;const j=jcEl();
- j.classList.remove("st-off","st-idle","st-wait","st-busy","st-ok","st-err","st-offline");
- if(st==="wait")void j.offsetWidth;
- j.classList.add("st-"+st);
- if(st==="ok"||st==="err"||st==="offline")setProg(100);
- else if(st!=="busy")setProg(0);
- paintBack();
- clearTimeout(ftm);
- if(st==="wait"||st==="busy")flip(true);
- else if(fresh||st==="err"||st==="offline"){flip(true);ftm=setTimeout(()=>flip(false),fresh?1800:2600)}
- else flip(false)}
-function dirty(){try{if(syncOff)return;if(!autoOn()){setSync(GH.t?"idle":"off");return}clearTimeout(at);setSync("wait");at=setTimeout(()=>syncNow(false,true),3000)}catch(e){}}
+const SYS={off:"Ulash uchun bosing",idle:"Bosib saqlang",wait:"2 soniyada avtomatik saqlanadi",offline:"Keyinroq qayta uriniladi",err:"Bosib qayta urining"};
+let PG=0,SGN="",hideT=null,sawBusy=false;
+const gsb=()=>$("gsb");
+function setProg(p){PG=Math.max(0,Math.min(100,Math.round(p)));gsb().style.setProperty("--p",PG+"%")}
+function setSync(st){const g=gsb(),fresh=st==="ok"&&sawBusy;sstate=st;clearTimeout(hideT);
+ g.classList.remove("st-wait","st-busy","st-ok","st-err","st-offline");
+ if(st==="wait"){g.classList.remove("show");void g.offsetWidth;g.classList.add("st-wait","show")}
+ else if(st==="busy"){sawBusy=true;g.classList.add("st-busy","show")}
+ else if(fresh||st==="err"||st==="offline"){sawBusy=false;setProg(100);g.classList.add("st-"+st,"show");hideT=setTimeout(()=>g.classList.remove("show"),fresh?1300:2600)}
+ else{sawBusy=false;g.classList.remove("show")}}
+function dirty(){try{if(syncOff)return;if(!autoOn()){setSync(GH.t?"idle":"off");return}clearTimeout(at);setSync("wait");at=setTimeout(()=>syncNow(false,true),2000)}catch(e){}}
 async function syncNow(force,quiet){if(syncing){again=true;return}syncing=true;clearTimeout(at);clearTimeout(retry);setProg(0);SGN="Tayyorlanmoqda…";setSync("busy");$("ghsave").disabled=true;
  const e=await ghSave0(force,quiet);syncing=false;$("ghsave").disabled=false;
  if(!e)setSync("ok");else if(e==="token")setSync("off");else{const m=String(e&&e.message||e),net=!/^\d+$/.test(m)&&m!=="conflict";setSync(net?"offline":"err");if(net)retry=setTimeout(()=>{if(autoOn())syncNow(false,true)},30000)}
