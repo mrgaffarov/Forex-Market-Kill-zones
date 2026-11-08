@@ -150,7 +150,7 @@ $("nadd").onclick=()=>{if(!$("nd").value||!$("ntm").value||!$("nt").value.trim()
 function tick(){
  const d=new Date(),loc=mins(d,tz),ny=mins(d,NY),inf=nyInfo(d),M=mkt(inf.dow,ny),diff=Math.round(loc-ny);
  $("clock").textContent=hm(loc)+":"+pad(Math.floor((loc%1)*60+1e-6));
- $("sub").textContent="New York "+hm(ny)+":"+pad(Math.floor((ny%1)*60+1e-6))+" · "+uo(NY);
+ $("sub").textContent="New York "+hm(ny)+":"+pad(Math.floor((ny%1)*60+1e-6))+" · "+inf.date.split("-").reverse().join(".")+" · "+uo(NY);
  updChart(d,loc,ny,M);
  const a=M.open?KZ.find(k=>act(k,ny)):null,bn=$("ban"),b={style:bn.style,set innerHTML(h){if(bn._h!==h){bn._h=h;bn.innerHTML=h}}};
  if(!M.open){b.style.background="var(--mute)";b.innerHTML="<b>Bozor yopiq (dam olish kuni)</b><span>Ochilishiga "+dur(M.toOpen)+"</span>"}
