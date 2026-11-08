@@ -13,14 +13,14 @@ const DEF=[{id:"as",n:"Asian kill zone",s:1200,e:1440,c:"--asia"},{id:"lo",n:"Lo
 function normKZ(a){if(!Array.isArray(a)||a.length!==4)return null;const r=a.map((k,i)=>k&&typeof k==="object"&&typeof k.n==="string"&&Number.isFinite(k.s)&&Number.isFinite(k.e)&&/^--[\w-]+$/.test(String(k.c))?{id:(typeof k.id==="string"&&k.id)?k.id:DEF[i].id,n:k.n,s:k.s,e:k.e,c:k.c}:null);return r.every(Boolean)?r:null}
 let KZ=normKZ(ld("kz",null))||JSON.parse(JSON.stringify(DEF));
 const SS=[{n:"Sydney",tz:"Australia/Sydney",s:420,e:960,c:"--sy"},{n:"Tokio",tz:"Asia/Tokyo",s:540,e:1080,c:"--tk"},{n:"London",tz:"Europe/London",s:480,e:1020,c:"--ld"},{n:"New York",tz:NY,s:480,e:1020,c:"--nyc"}];
-const SSD=SS.map(x=>[x.s,x.e]);ld("ss",[]).forEach((v,i)=>{if(SS[i]&&v){SS[i].s=v[0];SS[i].e=v[1]}});
+const SSD=SS.map(x=>[x.s,x.e]);const okSS=v=>Array.isArray(v)&&v.length>=2&&Number.isFinite(v[0])&&Number.isFinite(v[1])&&v[0]>=0&&v[1]<=1440&&v[1]>v[0];const lss=ld("ss",[]);if(Array.isArray(lss))lss.forEach((v,i)=>{if(SS[i]&&okSS(v)){SS[i].s=v[0];SS[i].e=v[1]}});
 /* savdo/yangilik yozuvlarini tekshirish: yaroqsizlari ilovani yiqitmasligi uchun */
-function normTrade(t){if(!t||typeof t!=="object")return null;const ts=Number(t.ts),hasTs=Number.isFinite(ts)&&ts>0;if(!hasTs&&!/^\d{4}-\d{2}-\d{2}/.test(String(t.d||"")))return null;const o=Object.assign({},t);if(hasTs)o.ts=ts;else delete o.ts;o.d=String(t.d||"");o.kz=String(t.kz==null?"":t.kz);o.mi=Array.isArray(t.mi)?t.mi.map(String):[];return o}
+function normTrade(t){if(!t||typeof t!=="object")return null;const ts=Number(t.ts),hasTs=Number.isFinite(ts)&&ts>0&&ts<8.64e15;if(!hasTs&&!(/^\d{4}-\d{2}-\d{2}/.test(String(t.d||""))&&Number.isFinite(Date.parse(String(t.d).slice(0,10)+"T12:00:00Z"))))return null;const o=Object.assign({},t);if(hasTs)o.ts=ts;else delete o.ts;o.d=String(t.d||"");o.kz=String(t.kz==null?"":t.kz);o.mi=Array.isArray(t.mi)?t.mi.map(String):[];return o}
 function normTrades(a){return Array.isArray(a)?a.map(normTrade).filter(Boolean):[]}
-function normEvents(a){return Array.isArray(a)?a.filter(n=>n&&typeof n==="object"&&Number.isFinite(Number(n.ts))&&Number(n.ts)>0).map(n=>Object.assign({},n,{ts:Number(n.ts),id:n.id?String(n.id):undefined})):[]}
+function normEvents(a){return Array.isArray(a)?a.filter(n=>n&&typeof n==="object"&&Number.isFinite(Number(n.ts))&&Number(n.ts)>0&&Number(n.ts)<8.64e15).map(n=>Object.assign({},n,{ts:Number(n.ts),id:n.id?String(n.id):undefined})):[]}
 let dropN=0;
 let trades=normTrades(ld("tr",[])),snd=ld("snd",false),pre=ld("pre",0),th=ld("th","auto"),mine=normEvents(ld("nw",[]));
-let side="Buy",prev={},pp={},fl={},ctx=null;
+let side="Buy",prev={},pp={},fl={},ctx=null,ALH="";
 
 /* ---- vaqt yordamchilari ---- */
 const hm=m=>{m=((Math.floor(m+1e-6)%1440)+1440)%1440;return pad(Math.floor(m/60))+":"+pad(m%60)};
@@ -91,7 +91,7 @@ function buildTL(){const d=new Date(),ny=mins(d,NY),diff=Math.round(mins(d,tz)-n
 function updChart(d,loc,ny,M){const x=loc/14.4+"%";
  if(!$("pin"))return;$("pin").style.left=x;$("nl2").style.left=x;$("pt").textContent=ft(loc);$("pd").textContent=DNs[new Date(wall(+d,tz)).getUTCDay()];
  $("hh").setAttribute("transform","rotate("+(loc/60%12*30)+" 14 14)");$("mh").setAttribute("transform","rotate("+(loc%60*6)+" 14 14)");
- RI.forEach((r,n)=>{const st=$("st"+n);if(r.t==="s"){const s=SS[r.i],m=mins(d,s.tz),open=M.open&&m>=s.e*0+s.s&&m<s.e;
+ RI.forEach((r,n)=>{const st=$("st"+n);if(r.t==="s"){const s=SS[r.i],m=mins(d,s.tz),open=M.open&&m>=s.s&&m<s.e;
    st.textContent=s.n.toUpperCase()+" SESSIYASI "+(!M.open?"· BOZOR YOPIQ":open?"OCHIQ · "+dur(s.e-m):"YOPIQ · "+dur(((s.s-m)%1440+1440)%1440));
    $("lt"+n).textContent=ft(m);$("ld"+n).textContent=DNs[new Date(wall(+d,s.tz)).getUTCDay()]+" ("+uo(s.tz).replace("UTC","UTC ")+")"}
   else{const k=KZ[r.i],on=M.open&&act(k,ny);st.textContent=k.n.toUpperCase()+" "+(!M.open?"· BOZOR YOPIQ":on?"FAOL · "+dur(left(k,ny)):"KUTILMOQDA · "+dur(wait(k,ny)))}});
@@ -117,7 +117,7 @@ function evCard(e,now){const f=e.f||"",p=e.p||"",a=e.a||"",na=num(a),nf=num(f),d
  return'<div class="ev2"><div class="ev2t"><b>'+fmt(e.ts)+"</b><small>"+(df>0?shortD(df):"")+'</small></div><div class="ev2b"><div class="ev2h"><b>'+esc(e.t)+'</b><span class="imp"><i></i><i></i><i></i></span><button class="x" data-id="'+esc(e.id)+'" aria-label="O‘chirish">'+IC("x")+"</button></div>"+st
  +'<div class="ev3"><div><small>Haqiqiy '+ar+'</small><input class="ai" data-id="'+esc(e.id)+'" value="'+esc(a)+'" placeholder="—"></div><div><small>Prognoz</small><b>'+(esc(f)||"—")+'</b></div><div><small>Oldingi</small><b>'+(esc(p)||"—")+"</b></div></div></div></div>"}
 function homeAlert(){const now=Date.now(),L=evList().filter(e=>{const df=(e.ts-now)/6e4;return df>-15&&df<=60}).slice(0,3);
- $("al").innerHTML=L.map(e=>{const df=(e.ts-now)/6e4;return'<div class="al"><span class="bd hot"></span><div class="alt"><b>'+esc(e.t)+'</b><small>'+fmt(e.ts)+" · "+(df>0?dur(df)+" qoldi":"hozir chiqdi")+'</small></div><div class="alp">'+(e.a?'<span>Haq. <b>'+esc(e.a)+'</b></span>':"")+(e.f?'<span>Prog. <b>'+esc(e.f)+'</b></span>':"")+(e.p?'<span>Old. <b>'+esc(e.p)+'</b></span>':"")+"</div></div>";}).join("");
+ const AH=L.map(e=>{const df=(e.ts-now)/6e4;return'<div class="al"><span class="bd hot"></span><div class="alt"><b>'+esc(e.t)+'</b><small>'+fmt(e.ts)+" · "+(df>0?dur(df)+" qoldi":"hozir chiqdi")+'</small></div><div class="alp">'+(e.a?'<span>Haq. <b>'+esc(e.a)+'</b></span>':"")+(e.f?'<span>Prog. <b>'+esc(e.f)+'</b></span>':"")+(e.p?'<span>Old. <b>'+esc(e.p)+'</b></span>':"")+"</div></div>";}).join("");if(AH!==ALH){ALH=AH;$("al").innerHTML=AH}
  if(snd)L.forEach(e=>{const df=(e.ts-now)/6e4;if(df>0&&df<=60&&!fl[e.id+"a"]){fl[e.id+"a"]=1;beep()}if(df>0&&df<=5&&!fl[e.id+"b"]){fl[e.id+"b"]=1;beep()}})}
 const NFO=[["up","Kutilayotgan"],["past","O‘tgan"],["all","Hammasi"]];let nfl=ld("nfl","up");
 function renderHero(){const now=Date.now(),L=evList(),nb=L.filter(e=>e.ts>now).length;$("nbg").textContent=nb;$("nbg").classList.toggle("hide",!nb);
@@ -152,7 +152,7 @@ function tick(){
  $("clock").textContent=hm(loc)+":"+pad(Math.floor((loc%1)*60+1e-6));
  $("sub").textContent="New York "+hm(ny)+":"+pad(Math.floor((ny%1)*60+1e-6))+" · "+uo(NY);
  updChart(d,loc,ny,M);
- const a=M.open?KZ.find(k=>act(k,ny)):null,b=$("ban");
+ const a=M.open?KZ.find(k=>act(k,ny)):null,bn=$("ban"),b={style:bn.style,set innerHTML(h){if(bn._h!==h){bn._h=h;bn.innerHTML=h}}};
  if(!M.open){b.style.background="var(--mute)";b.innerHTML="<b>Bozor yopiq (dam olish kuni)</b><span>Ochilishiga "+dur(M.toOpen)+"</span>"}
  else if(a){b.style.background="var("+a.c+")";b.innerHTML="<b>HOZIR: "+esc(a.n)+"</b><span>Tugashiga "+dur(left(a,ny))+"</span>"}
  else{const nx=KZ.slice().sort((x,y)=>wait(x,ny)-wait(y,ny))[0];b.style.background="var(--mute)";b.innerHTML="<b>Kill zone emas</b><span>Keyingisi: "+esc(nx.n)+", "+dur(wait(nx,ny))+" dan keyin</span>"}
@@ -175,9 +175,10 @@ document.querySelectorAll("#th button").forEach(b=>b.onclick=()=>{th=b.dataset.v
 /* ---- jurnal ---- */
 const TP="Foyda (TP)",SL="Zarar (SL)";
 let outc="w",vw="m",cm=ld("cm","d"),mt=ld("mt","r"),wk=ld("wk",false),selDay=null,sp=ld("sp",30),an=ld("an","kz"),fmi=new Set(),pk=null;
-let MI=ld("mi",["Erta kirdim","Stopni surdim","FOMO","Qasos savdosi","Riskni oshirdim","Rejaga amal qilmadim","Kech chiqdim"]);
+const MI0=["Erta kirdim","Stopni surdim","FOMO","Qasos savdosi","Riskni oshirdim","Rejaga amal qilmadim","Kech chiqdim"];let MI=ld("mi",MI0);MI=Array.isArray(MI)?MI.map(String):MI0;
 const D=k=>new Date(k+"T12:00:00Z"),K=d=>d.toISOString().slice(0,10),addD=(k,n)=>{const d=D(k);d.setUTCDate(d.getUTCDate()+n);return K(d)},dow=k=>(D(k).getUTCDay()+6)%7;
-const dk=ts=>K(new Date(wall(ts,tz))),todayK=()=>dk(Date.now());let anc=todayK();
+/* Jurnal kuni FAQAT New York vaqti bo‘yicha (ko‘rsatish zonasi tz ga bog‘liq emas): 17:00 NY da yangi kun boshlanadi */
+const dk=ts=>K(new Date(wall(ts,NY)+7*36e5)),todayK=()=>dk(Date.now());let anc=todayK();
 
 /* --- YANGILANGAN TMS FUNKSIYASI (GitHub AI tavsiyasi) --- */
 const tms=t=>{
@@ -192,7 +193,7 @@ const oc=t=>t.out==="w"||t.out==="l"||t.out==="d"?t.out:((t.r>0||t.u>0)?"w":(t.r
 const fv=(v,sg)=>{const a=Math.abs(v),x=mt==="u"?"$"+a.toFixed(2):a.toFixed(1)+"R";return(v<0?"−":sg&&v>0?"+":"")+x};
 const cl=v=>v>0?"pos":v<0?"neg":"";
 const MN=["Yanvar","Fevral","Mart","Aprel","May","Iyun","Iyul","Avgust","Sentyabr","Oktyabr","Noyabr","Dekabr"],MS=["yan","fev","mar","apr","may","iyn","iyl","avg","sen","okt","noy","dek"],WD=["Du","Se","Ch","Pa","Ju","Sh","Ya"];
-const nowT=()=>{const w=new Date(wall(Date.now(),tz));return pad(w.getUTCHours())+":"+pad(w.getUTCMinutes())};
+const nowT=()=>{const w=new Date(wall(Date.now(),NY));return pad(w.getUTCHours())+":"+pad(w.getUTCMinutes())};
 const kzs=k=>(k||"").replace(" kill zone","").replace("New York","NY");
 const mapDays=()=>{const m={};trades.forEach(t=>{const k=dk(tms(t)),o=m[k]=m[k]||{s:0,n:0,w:0,l:0};o.s+=val(t);o.n++;const c=oc(t);if(c==="w")o.w++;else if(c==="l")o.l++});return m};
 const dcl=o=>!o?"":o.s>0?"w":o.s<0?"l":o.w>o.l?"w":o.l>o.w?"l":"d";
@@ -208,7 +209,7 @@ function calHTML(days){const d=D(anc),y=d.getUTCFullYear(),m=d.getUTCMonth(),W7=
    h+='<button class="mini" data-m="'+mm+'"><b>'+MS[mm]+'</b><div class="mg">'+cs.join("")+'</div><span class="'+cl(tot)+'">'+(cnt?fv(tot,1):"—")+"</span></button>"}return h+"</div>"}
  const mo={};Object.keys(days).forEach(k=>{const q=k.slice(0,7),o=mo[q]=mo[q]||{s:0,n:0};o.s+=days[k].s;o.n+=days[k].n});const ks=Object.keys(mo).sort().reverse(),mx=Math.max(1e-9,...ks.map(q=>Math.abs(mo[q].s)));
  return ks.length?ks.map(q=>'<div class="ab"><span>'+MN[+q.slice(5)-1].slice(0,3)+" "+q.slice(0,4)+'</span><div class="abb"><i class="'+(mo[q].s>=0?"g":"r")+'" style="width:'+Math.max(4,Math.abs(mo[q].s)/mx*100)+'%"></i></div><b class="'+cl(mo[q].s)+'">'+fv(mo[q].s,1)+"</b></div>").join(""):'<div class="mute">Hali savdo yo‘q.</div>'}
-const grp=(T,f)=>{const o={};T.forEach(t=>f(t).forEach(k=>{const x=o[k]=o[k]||{n:0,w:0,r:0};x.n++;if(oc(t)==="w")x.w++;x.r+=val(t)}));return o};
+const grp=(T,f)=>{const o=Object.create(null);T.forEach(t=>f(t).forEach(k=>{const x=o[k]=o[k]||{n:0,w:0,dd:0,r:0},c=oc(t);x.n++;if(c==="w")x.w++;if(c!=="d")x.dd++;x.r+=val(t)}));return o};
 function streak(T){const s=T.slice().sort((a,b)=>tms(a)-tms(b));let bw=0,bl=0,cw=0,cL=0,cur=0,ty="";s.forEach(t=>{const c=oc(t);if(c==="w"){cw++;cL=0;bw=Math.max(bw,cw)}else if(c==="l"){cL++;cw=0;bl=Math.max(bl,cL)}});
  for(let i=s.length-1;i>=0;i--){const c=oc(s[i]);if(c==="d")continue;if(!ty)ty=c;if(c===ty)cur++;else break}return{cur,ty,bw,bl}}
 function ring(w,l){const n=w+l,C=2*Math.PI*42,g=w&&l?5:0;let h='<svg viewBox="0 0 110 110" class="donut"><circle cx="55" cy="55" r="42" fill="none" stroke="var(--line)" stroke-width="11"/>';
@@ -219,7 +220,7 @@ function spark(T){const s=T.filter(t=>oc(t)!=="d").sort((a,b)=>tms(a)-tms(b));if
  const r=[];for(let i=9;i<s.length;i++){let c=0;for(let j=i-9;j<=i;j++)if(oc(s[j])==="w")c++;r.push(c*10)}
  const X=i=>r.length>1?i*300/(r.length-1):150,Y=v=>52-v/100*48;
  return'<span class="lbl">Win rate trendi (oxirgi 10 savdo oynasi)</span><svg viewBox="0 0 300 56" width="100%" height="56" preserveAspectRatio="none" style="margin-top:6px"><line x1="0" x2="300" y1="'+Y(50)+'" y2="'+Y(50)+'" style="stroke:var(--line)" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/><polyline fill="none" style="stroke:var(--nyam)" stroke-width="2.4" stroke-linejoin="round" vector-effect="non-scaling-stroke" points="'+r.map((v,i)=>X(i).toFixed(1)+","+Y(v).toFixed(1)).join(" ")+'"/></svg><div class="foot">Hozirgi: '+r[r.length-1]+"% · punktir chiziq: 50%</div>"}
-const rowH=(t,i)=>{const k=oc(t),has=mt==="r"||(t.u!==undefined&&t.u!==null),v=val(t),w=t.ts?new Date(wall(t.ts,tz)):null,tm=w?pad(w.getUTCHours())+":"+pad(w.getUTCMinutes())+" · ":"";
+const rowH=(t,i)=>{const k=oc(t),has=mt==="r"||(t.u!==undefined&&t.u!==null),v=val(t),tm="";
  return'<div class="tr '+k+'"><div class="tl"><div class="t1">'+(k==="d"?"":'<span class="bdg '+k+'">'+(k==="w"?TP:SL)+"</span>")+"<b>"+esc(t.p)+'</b><span class="sd">'+esc(t.s)+"</span></div><small>"+tm+esc(kzs(t.kz))+" · "+esc(t.d)+"</small>"+(t.nt?'<div class="nt">'+esc(t.nt)+"</div>":"")+(t.mi&&t.mi.length?'<div class="mb">Xato: '+t.mi.map(esc).join(" · ")+"</div>":"")+'</div><div class="tv"><b class="'+cl(v)+'">'+(has?fv(v,1):"—")+'</b><button class="x xd" data-i="'+i+'" aria-label="O‘chirish">'+IC("x")+"</button></div></div>"};
 function renderJr(){
  document.querySelectorAll("#vw button").forEach(b=>b.classList.toggle("on",b.dataset.v===vw));
@@ -242,7 +243,7 @@ function renderJr(){
   dd.innerHTML='<div class="dhd"><b>'+dt.getUTCDate()+"-"+MS[dt.getUTCMonth()]+", "+DNs[dt.getUTCDay()]+'</b><span class="'+cl(o?o.s:0)+'">'+(o?fv(o.s,1):"")+"</span></div>"+(dl.length?dl.map(([t,i])=>rowH(t,i)).join(""):'<div class="mute">Bu kunda savdo yo‘q.</div>')+'<button class="wide" data-add="'+selDay+'" style="margin:8px 0 0">'+IC("plus")+"Savdo qo‘shish</button>"}else dd.classList.add("hide");
  const L2=trades.map((t,i)=>[t,i]).filter(([t])=>inR(t,R)).sort((a,c)=>tms(c[0])-tms(a[0])).slice(0,40);
  $("list").innerHTML=L2.length?L2.map(([t,i])=>rowH(t,i)).join(""):'<div class="mute">Hali savdo yo‘q.</div>';
- renderStats()}
+ if(!$("stats").classList.contains("hide"))renderStats()}
 const shift=n=>{const d=D(anc);if(vw==="w")d.setUTCDate(d.getUTCDate()+7*n);else if(vw==="m"){d.setUTCDate(1);d.setUTCMonth(d.getUTCMonth()+n)}else if(vw==="y")d.setUTCFullYear(d.getUTCFullYear()+n);anc=K(d);selDay=null;renderJr()};
 $("jprev").onclick=()=>shift(-1);$("jnext").onclick=()=>shift(1);
 $("vw").onclick=e=>{const b=e.target.closest("button");if(b){vw=b.dataset.v;selDay=null;renderJr()}};
@@ -271,7 +272,7 @@ function openForm(k){
  const d=D(k);
  $("tdt").textContent =
   d.getUTCDate() + "-" + MS[d.getUTCMonth()] + " " +
-  d.getUTCFullYear() + ", " + DNs[d.getUTCDay()];
+  d.getUTCFullYear() + ", " + DNs[d.getUTCDay()] + " · NY vaqti";
  $("tm").classList.remove("hide");
 }
 $("fab").onclick=()=>openForm(selDay||todayK());
@@ -282,7 +283,7 @@ $("out").onclick=e=>{const b=e.target.closest("button");if(!b)return;outc=b.data
 $("add").onclick=()=>{const rv=Math.abs(parseFloat($("res").value)),uv=Math.abs(parseFloat($("usd").value));
  if(isNaN(rv)&&isNaN(uv)){toast("P&L ($) yoki R kiriting");return}
  if(!$("td").value||!$("tt").value){toast("Sana va vaqtni kiriting");return}
- const ts=toUTC($("td").value,$("tt").value,tz),dd=new Date(ts),i=nyInfo(dd),nm=mins(dd,NY),k=mkt(i.dow,nm).open?KZ.find(x=>act(x,nm)):null,sg=outc==="w"?1:-1;
+ const ts=toUTC($("tt").value>="17:00"?addD($("td").value,-1):$("td").value,$("tt").value,NY),dd=new Date(ts),i=nyInfo(dd),nm=mins(dd,NY),k=mkt(i.dow,nm).open?KZ.find(x=>act(x,nm)):null,sg=outc==="w"?1:-1;
  trades.unshift({ts,p:$("pair").value.trim().toUpperCase()||"—",s:side,out:outc,r:sg*(isNaN(rv)?0:rv),u:isNaN(uv)?undefined:sg*uv,kz:k?k.n:"Kill zone tashqarida",nt:$("note").value.trim(),mi:[...fmi],d:i.date+" "+hm(nm)+" NY"});
  sv("tr",trades);["res","usd","note"].forEach(id=>$(id).value="");fmi=new Set();chips();$("tm").classList.add("hide");selDay=dk(ts);anc=selDay;renderJr();toast("Saqlandi")};
 /* ---- statistika ---- */
@@ -319,7 +320,7 @@ function drawPnl(){const{L,sub}=series(),el=$("pnl"),n=L.length,last=n?L[n-1].v:
  const H2=72,mn=Math.min(...dd),Y2=v=>6+(v/(mn*1.15))*(H2-14),d2=dd.map((v,i)=>(i?"L":"M")+X(i).toFixed(1)+" "+Y2(v).toFixed(1)).join(" ");
  $("ddc").innerHTML=mdd<0?'<svg viewBox="0 0 '+W+" "+H2+'" width="'+W+'" height="'+H2+'"><path d="'+d2+" L"+X(n-1).toFixed(1)+" 6 L"+X(0).toFixed(1)+' 6Z" style="fill:#dc2626;fill-opacity:.28"/><path d="'+d2+'" fill="none" style="stroke:#dc2626" stroke-width="1.8" stroke-linejoin="round"/><line x1="'+Lm+'" x2="'+(W-Rm)+'" y1="6" y2="6" style="stroke:var(--mute)"/><text x="'+(Lm-6)+'" y="10" text-anchor="end" class="ax">0</text><text x="'+(Lm-6)+'" y="'+(Y2(mn)+3).toFixed(1)+'" text-anchor="end" class="ax">'+f(+mn.toFixed(2))+"</text></svg>":'<div class="mute">Bu davrda drawdown bo‘lmagan.</div>'}
 function bars(o,sort,lab){const ks=Object.keys(o);if(!ks.length)return'<div class="mute">Ma’lumot yo‘q</div>';ks.sort(sort||((a,b)=>o[b].r-o[a].r));const mx=Math.max(1e-9,...ks.map(k=>Math.abs(o[k].r)));
- return ks.map(k=>{const x=o[k];return'<div class="br"><div class="bh"><b>'+esc(lab?lab(k):k)+"</b><span>"+x.n+" savdo · win rate "+Math.round(x.w/x.n*100)+"%"+(x.n<5?'<i class="few">kam</i>':"")+'</span><em class="'+cl(x.r)+'">'+fv(x.r,1)+'</em></div><div class="bt"><i class="'+(x.r>=0?"g":"r")+'" style="width:'+Math.max(3,Math.abs(x.r)/mx*100)+'%"></i></div></div>'}).join("")}
+ return ks.map(k=>{const x=o[k];return'<div class="br"><div class="bh"><b>'+esc(lab?lab(k):k)+"</b><span>"+x.n+" savdo · win rate "+(x.dd?Math.round(x.w/x.dd*100)+"%":"—")+(x.n<5?'<i class="few">kam</i>':"")+'</span><em class="'+cl(x.r)+'">'+fv(x.r,1)+'</em></div><div class="bt"><i class="'+(x.r>=0?"g":"r")+'" style="width:'+Math.max(3,Math.abs(x.r)/mx*100)+'%"></i></div></div>'}).join("")}
 const bestLine=(o,lab)=>{const k=Object.keys(o).filter(k=>o[k].n>=3).sort((a,b)=>o[b].r-o[a].r)[0];return k&&o[k].r>0?'<div class="foot" style="margin-top:8px">Eng yaxshi: <b>'+esc(lab?lab(k):k)+"</b> · "+fv(o[k].r,1)+"</div>":""};
 function renderStats(){
  $("fv1").textContent=SPO.find(o=>o[0]===sp)[1];$("fv2").textContent=mt==="u"?"$ (dollar)":"R (risk)";$("fv3").textContent=CMO.find(o=>o[0]===cm)[1];$("fv4").textContent=ANO.find(o=>o[0]===an)[1];
@@ -327,7 +328,7 @@ function renderStats(){
  $("swarn").innerHTML=n<20?'<div class="warn"><b>Ma’lumot kam:</b> tahlil davrida '+n+' ta savdo bor. Ishonchli xulosa uchun kamida 20–30 ta kerak.</div>':"";
  let h="";
  if(an==="kz"){const g=grp(T,t=>[t.kz||"—"]);h=bars(g,null,kzs)+bestLine(g,kzs)}
- else if(an==="dw"){const g=grp(T,t=>[DNs[new Date(wall(tms(t),tz)).getUTCDay()]]);h=bars(g,(a,b)=>DW.indexOf(a)-DW.indexOf(b))+bestLine(g)}
+ else if(an==="dw"){const g=grp(T,t=>[DNs[D(dk(tms(t))).getUTCDay()]]);h=bars(g,(a,b)=>DW.indexOf(a)-DW.indexOf(b))+bestLine(g)}
  else if(an==="hr"){
  const g=grp(T,t=>{
   const ts=tms(t);
@@ -336,8 +337,8 @@ function renderStats(){
  });
  h=bars(g,(a,b)=>a<b?-1:1)+bestLine(g)
 }
- else{const mo={};T.forEach(t=>(t.mi||[]).forEach(m=>{const x=mo[m]=mo[m]||{n:0,w:0,r:0};x.n++;if(oc(t)==="w")x.w++;x.r+=val(t)}));
-  const wm=T.filter(t=>t.mi&&t.mi.length),nm=T.filter(t=>!(t.mi&&t.mi.length)),wp=a=>a.length?Math.round(a.filter(t=>oc(t)==="w").length/a.length*100)+"%":"—",worst=Object.keys(mo).sort((a,b)=>mo[a].r-mo[b].r)[0];
+ else{const mo=Object.create(null);T.forEach(t=>(t.mi||[]).forEach(m=>{const x=mo[m]=mo[m]||{n:0,w:0,dd:0,r:0},c=oc(t);x.n++;if(c==="w")x.w++;if(c!=="d")x.dd++;x.r+=val(t)}));
+  const wm=T.filter(t=>t.mi&&t.mi.length),nm=T.filter(t=>!(t.mi&&t.mi.length)),wp=a=>{const d=a.filter(t=>oc(t)!=="d").length;return d?Math.round(a.filter(t=>oc(t)==="w").length/d*100)+"%":"—"},worst=Object.keys(mo).sort((a,b)=>mo[a].r-mo[b].r)[0];
   h=wm.length?(worst&&mo[worst].r<0?'<div class="hl">Eng qimmat xato: <b>'+esc(worst)+"</b> · "+fv(mo[worst].r,1)+" ("+mo[worst].n+" marta)</div>":"")+'<div class="cmp"><div><b>'+wp(nm)+"</b>Xatosiz savdolar win rate ("+nm.length+')</div><div><b>'+wp(wm)+"</b>Xatoli savdolar win rate ("+wm.length+")</div></div>"+bars(mo,(a,b)=>mo[a].r-mo[b].r):'<div class="mute">Hali xato belgilanmagan. Savdo qo‘shganda “Xatolar” maydonidan belgilang.</div>'}
  $("an").innerHTML=h;drawPnl()}
 window.addEventListener("resize",()=>{if(!$("stats").classList.contains("hide"))drawPnl()});
@@ -376,8 +377,8 @@ $("rreset").onclick=()=>{$("bal").value="";$("rk").value=1;$("sl").value="";$("p
 {const c=ld("calc",[1000,1,10,10,"usd"]);ptk=c[4]||"usd";["bal","rk","sl","pv"].forEach((id,i)=>{$(id).value=c[i]||"";$(id).oninput=()=>{if(id==="pv"){const x=PT.find(y=>y[0]===ptk);if(x[3]===null||+$("pv").value!==x[3])ptk="man"}calc()}});calc()}
 $("exp").onclick=()=>{const s=JSON.stringify({kz:KZ,ss:SS.map(y=>[y.s,y.e]),tr:trades,nw:mine,mi:MI});$("bk").value=s;copyText(s).then(ok=>{$("bkm").textContent=ok?"Nusxalandi. Telegram “Saved messages” ga joylab qo‘ying.":"Avtomatik nusxalanmadi. Matnni qo‘lda belgilab nusxalang.";if(!ok){try{$("bk").select()}catch(e){}}toast(ok?"Nusxalandi":"Nusxalab bo‘lmadi")})};
 /* ---- GitHub baza ---- */
-function applyData(o){{const z=normKZ(o.kz);if(z){KZ=z;sv("kz",KZ)}}if(Array.isArray(o.ss))o.ss.forEach((v,i)=>{if(SS[i]&&v){SS[i].s=v[0];SS[i].e=v[1]}});sv("ss",SS.map(y=>[y.s,y.e]));
- if(Array.isArray(o.tr)){trades=normTrades(o.tr);dropN=o.tr.length-trades.length;sv("tr",trades)}if(Array.isArray(o.mi)){MI=o.mi;sv("mi",MI)}if(Array.isArray(o.nw)){mine=normEvents(o.nw);fixIds();sv("nw",mine)}chips();eKZ();eSS();buildTL();renderJr();renderCal();tick()}
+function applyData(o){{const z=normKZ(o.kz);if(z){KZ=z;sv("kz",KZ)}}if(Array.isArray(o.ss))o.ss.forEach((v,i)=>{if(SS[i]&&okSS(v)){SS[i].s=v[0];SS[i].e=v[1]}});sv("ss",SS.map(y=>[y.s,y.e]));
+ if(Array.isArray(o.tr)){trades=normTrades(o.tr);dropN=o.tr.length-trades.length;sv("tr",trades)}if(Array.isArray(o.mi)){MI=o.mi.map(String);sv("mi",MI)}if(Array.isArray(o.nw)){mine=normEvents(o.nw);fixIds();sv("nw",mine)}chips();eKZ();eSS();buildTL();renderJr();renderCal();tick()}
 $("imp").onclick=()=>{let o;const bad=()=>{$("bkm").textContent="Matn noto‘g‘ri.";toast("Matn noto‘g‘ri")};try{o=JSON.parse($("bk").value)}catch(e){bad();return}if(!o||typeof o!=="object"||Array.isArray(o)){bad();return}
  openPick("Tiklashni tasdiqlang",[["y","Ha, tiklash","Shu qurilmadagi ma’lumotlar kiritilgan matn bilan almashadi"],["n","Bekor qilish"]],"n",v=>{if(v!=="y")return;try{dropN=0;applyData(o);$("bkm").textContent="Tiklandi."+(dropN?" "+dropN+" ta yaroqsiz savdo o‘tkazib yuborildi.":"");toast("Tiklandi")}catch(e){bad()}})};
 const GH={o:ld("gho","mrgaffarov"),r:ld("ghr","killzone-data"),t:ld("ght","")},GP_OLD="data/killzone-data.json";
@@ -394,17 +395,17 @@ const GH={o:ld("gho","mrgaffarov"),r:ld("ghr","killzone-data"),t:ld("ght","")},G
 const b64=s=>btoa(unescape(encodeURIComponent(s))),unb64=s=>decodeURIComponent(escape(atob(s.replace(/\s/g,""))));
 const ghf=p=>"https://api.github.com/repos/"+GH.o+"/"+GH.r+"/contents/"+p,ghm=t=>{$("ghm").textContent=t};
 const ghh=raw=>{const h={Accept:raw?"application/vnd.github.raw+json":"application/vnd.github+json"};if(GH.t)h.Authorization="Bearer "+GH.t;return h};
-const hsh=x=>{let h=5381;for(let i=0;i<x.length;i++)h=((h<<5)+h+x.charCodeAt(i))|0;return String(h)};
+const hsh=x=>{let a=5381,b=2166136261|0;for(let i=0;i<x.length;i++){const c=x.charCodeAt(i);a=((a<<5)+a+c)|0;b=Math.imul(b^c,16777619)}return a+"."+(b>>>0)+"."+x.length};
 let GC=ld("ghc",{});
-const monthsOf=()=>{const m={};trades.forEach(t=>{const k=(t.d||"").slice(0,7)||dk(tms(t)).slice(0,7);(m[k]=m[k]||[]).push(t)});return m};
+const monthsOf=()=>{const m={};trades.forEach(t=>{const ts=tms(t),k=Number.isFinite(ts)?dk(ts).slice(0,7):(t.d||"").slice(0,7);(m[k]=m[k]||[]).push(t)});return m};
 const pack=(k,a)=>JSON.stringify({v:1,oy:k,savdolar:a.slice().sort((x,y)=>tms(x)-tms(y))},null,1);
 const setsPack=()=>JSON.stringify({v:1,vaqtlar:KZ,sessiyalar:SS.map(y=>[y.s,y.e]),xatolar:MI,yangiliklar:mine,afzalliklar:{birlik:mt,hafta_oxiri:wk,davr:sp,tahlil:an,grafik:cm,mavzu:th,soat12:h12,tovush:snd,ogohlantirish:pre,zona:tz,utc:cu}},null,1);
 function statPack(ts){const mm=monthsOf(),agg=a=>{let tp=0,sl=0,r=0,u=0,gwR=0,glR=0,gwU=0,glU=0;a.forEach(t=>{const c=oc(t);if(c==="w")tp++;else if(c==="l")sl++;const rv=+t.r||0,uv=+t.u||0;r+=rv;u+=uv;if(rv>0)gwR+=rv;else glR-=rv;if(uv>0)gwU+=uv;else glU-=uv});const n=tp+sl;
   return{savdo:a.length,tp,sl,winrate:n?+(tp/n*100).toFixed(1):null,pnl_r:+r.toFixed(2),pnl_usd:+u.toFixed(2),profit_factor_r:glR?+(gwR/glR).toFixed(2):null,profit_factor_usd:glU?+(gwU/glU).toFixed(2):null}},oy={};
  Object.keys(mm).sort().forEach(k=>oy[k]=agg(mm[k]));const o={v:1,eslatma:"Savdolardan hisoblangan xulosa. Ilova uni o‘qimaydi, faqat GitHub’da ko‘rish uchun.",jami:agg(trades),oylar:oy};if(ts)o.yangilangan=new Date().toISOString();return JSON.stringify(o,null,1)}
 function applySets(o){{const z=normKZ(o.vaqtlar);if(z){KZ=z;sv("kz",KZ)}}
- if(Array.isArray(o.sessiyalar)){o.sessiyalar.forEach((v,i)=>{if(SS[i]&&v){SS[i].s=v[0];SS[i].e=v[1]}});sv("ss",SS.map(y=>[y.s,y.e]))}
- if(Array.isArray(o.xatolar)){MI=o.xatolar;sv("mi",MI)}
+ if(Array.isArray(o.sessiyalar)){o.sessiyalar.forEach((v,i)=>{if(SS[i]&&okSS(v)){SS[i].s=v[0];SS[i].e=v[1]}});sv("ss",SS.map(y=>[y.s,y.e]))}
+ if(Array.isArray(o.xatolar)){MI=o.xatolar.map(String);sv("mi",MI)}
  if(Array.isArray(o.yangiliklar)){mine=normEvents(o.yangiliklar);fixIds();sv("nw",mine)}
  const a=o.afzalliklar||{};
  if(a.birlik==="r"||a.birlik==="u"){mt=a.birlik;sv("mt",mt)}if(a.hafta_oxiri!==undefined){wk=a.hafta_oxiri;sv("wk",wk)}if(a.davr!==undefined&&SPO.some(o=>o[0]===a.davr)){sp=a.davr;sv("sp",sp)}if(a.tahlil&&ANO.some(o=>o[0]===a.tahlil)){an=a.tahlil;sv("an",an)}if(a.grafik&&CMO.some(o=>o[0]===a.grafik)){cm=a.grafik;sv("cm",cm)}
@@ -433,7 +434,7 @@ async function ghRestore0(){ghm("Yuklanmoqda…");
    const bs=[ls.status,st.status,old.status].find(x=>x===401||x===403);if(bs)throw new Error(bs);
    ghm("Hali saqlanmagan yoki omborxona topilmadi (private bo‘lsa token kerak).");return"none"}
   let all=[],nf=0;
-  if(ls.ok){const files=(await ls.json()).filter(f=>/^\d{4}-\d{2}\.json$/.test(f.name)),res=await Promise.all(files.map(async f=>{const r=await get(f.path,true);if(!r.ok)throw new Error(r.status);const tx=await r.text();GC[f.path]={h:hsh(tx),sha:f.sha};return JSON.parse(tx).savdolar||[]}));res.forEach(a=>{all=all.concat(a);nf++})}
+  if(ls.ok){const files=(await ls.json()).filter(f=>/^\d{4}-\d{2}\.json$/.test(f.name)),res=await Promise.all(files.map(async f=>{const r=await get(f.path,true);if(!r.ok)throw new Error(r.status);const tx=await r.text();GC[f.path]={h:hsh(tx),sha:f.sha};return JSON.parse(tx).savdolar||[]}));const seen=new Set();res.forEach(a=>{const ks=a.map(t=>JSON.stringify(t));all=all.concat(a.filter((t,i)=>!seen.has(ks[i])));ks.forEach(k=>seen.add(k));nf++})}
   if(ls.ok){trades=normTrades(all);sv("tr",trades)}
   if(st.ok){const j=await st.json(),tx=unb64(j.content);GC["data/sozlamalar.json"]={h:hsh(tx),sha:j.sha};applySets(JSON.parse(tx))}
   sv("ghc",GC);refreshAll();renderBaza();ghm("GitHub’dan tiklandi: "+trades.length+" ta savdo ("+nf+" oy fayli)"+(all.length>trades.length?", "+(all.length-trades.length)+" ta yaroqsiz yozuv o‘tkazib yuborildi":"")+(st.ok?", sozlamalar":"")+".");toast("Tiklandi");return"ok"}
@@ -470,10 +471,10 @@ function renderBaza(){const ok=!!(GH.t&&GH.r&&GH.o),last=ld("ghlast",0),{rows,mm
  $("gbd").textContent=!ok?"":pend?pend+" ta o‘zgargan":"Hammasi saqlangan";$("gbd").className="gbadge "+(pend?"warn":"okb");
  $("gsx").innerHTML="<div><b>"+trades.length+"</b>savdo</div><div><b>"+Object.keys(mm).length+"</b>oy fayli</div><div><b>"+(last?ago(last):"—")+"</b>oxirgi saqlash</div>";
  $("gauto").checked=ld("ghauto",true);
- $("gfl").innerHTML=rows.map(r=>'<div class="fl2"><span class="ib">'+IC("db")+'</span><div class="fn"><b>'+r[0]+"</b><small>"+r[1]+'</small></div><span class="fchip st-'+r[2]+'">'+(r[2]==="s"?"Saqlangan":r[2]==="y"?"Yangi":"O‘zgargan")+"</span></div>").join("")}
+ $("gfl").innerHTML=rows.map(r=>'<div class="fl2"><span class="ib">'+IC("db")+'</span><div class="fn"><b>'+esc(r[0])+"</b><small>"+esc(r[1])+'</small></div><span class="fchip st-'+r[2]+'">'+(r[2]==="s"?"Saqlangan":r[2]==="y"?"Yangi":"O‘zgargan")+"</span></div>").join("")}
 function initSync(){if(!(GH.t&&GH.o&&GH.r))setSync("off");else if(!ld("ghauto",true))setSync("idle");else if(pendN()>0)dirty();else setSync("ok")}
 
 /* ---- boshlash ---- */
-$("ver").textContent="v15";
+$("ver").textContent="v18";
 applyTh();refreshTz();chips();eKZ();eSS();buildTL();tick();renderJr();renderCal();renderBaza();$("gcon").open=!GH.t;initSync();
 setInterval(tick,1000);setInterval(buildTL,3600000);
