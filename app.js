@@ -427,6 +427,6 @@ function renderBaza(){const ok=!!(GH.t&&GH.r&&GH.o),last=ld("ghlast",0),{rows,mm
 function initSync(){if(!(GH.t&&GH.o&&GH.r))setSync("off");else if(!ld("ghauto",true))setSync("idle");else if(pendN()>0)dirty();else setSync("ok")}
 
 /* ---- boshlash ---- */
-$("ver").textContent="Versiya: v14";
+$("ver").textContent="v14";
 applyTh();refreshTz();chips();eKZ();eSS();buildTL();tick();renderJr();renderCal();renderBaza();$("gcon").open=!GH.t;initSync();
 setInterval(tick,1000);setInterval(buildTL,3600000);
