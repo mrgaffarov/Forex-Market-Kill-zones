@@ -238,36 +238,6 @@ button.ch{cursor:pointer}.ch.on{background:var(--nyam);border-color:var(--nyam);
 .inl{display:flex;align-items:center;gap:8px;font-size:.8rem;margin:0 0 10px}.inl input{width:auto;margin:0}
 button:disabled{opacity:.55}
 
-.syncrow{display:flex;justify-content:flex-end;margin-bottom:10px}
-.sync{--cr:100,116,139;position:relative;isolation:isolate;overflow:hidden;display:inline-flex;align-items:center;gap:10px;min-width:220px;max-width:100%;padding:6px 16px 6px 7px;border-radius:99px;background:var(--card);border:1px solid var(--line);box-shadow:var(--sh);color:var(--ink);text-align:left;transition:border-color .3s,transform .15s}
-.sync:active{transform:scale(.98)}
-.sync::before{content:"";position:absolute;inset:0;z-index:-1;width:var(--p,0%);background:linear-gradient(90deg,rgba(var(--cr),.10),rgba(var(--cr),.26));transition:width .5s cubic-bezier(.2,.8,.2,1)}
-.sring{position:relative;width:36px;height:36px;flex:none}
-.sring svg{width:100%;height:100%;transform:rotate(-90deg)}
-.sring circle{fill:none;stroke-width:3.4}
-.sbg{stroke:var(--line)}
-.sfg{stroke:rgb(var(--cr));stroke-linecap:round;stroke-dasharray:100;stroke-dashoffset:100;transition:stroke-dashoffset .5s cubic-bezier(.2,.8,.2,1),stroke .3s}
-.spc{position:absolute;inset:0;display:grid;place-items:center;font-size:.6rem;font-weight:800;letter-spacing:-.02em;color:rgb(var(--cr));font-variant-numeric:tabular-nums}
-.spc .ic{width:15px;height:15px;stroke-width:2.4}
-.stx{display:flex;flex-direction:column;gap:1px;line-height:1.2;min-width:0}
-.stx b{font-size:.8rem;font-weight:700}
-.stx small{font-size:.68rem;font-weight:500;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sync.off .sfg,.sync.idle .sfg{stroke-dashoffset:100!important}
-.sync.wait{--cr:245,158,11}
-.sync.wait .sfg{animation:swait 6s linear forwards}
-.sync.wait::before{animation:sfill 6s linear forwards}
-.sync.busy{--cr:59,130,246;border-color:rgba(59,130,246,.45)}
-.sync.busy::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.22) 50%,transparent 70%);transform:translateX(-100%);animation:ssh 1.3s linear infinite}
-.sync.ok{--cr:22,163,74}.sync.ok .sfg{stroke-dashoffset:0!important}.sync.ok::before{width:100%}
-.sync.err{--cr:220,38,38;border-color:rgba(220,38,38,.4)}.sync.err .sfg{stroke-dashoffset:0!important}.sync.err::before{width:100%}
-.sync.offline{--cr:245,158,11}.sync.offline .sfg{stroke-dashoffset:0!important}.sync.offline::before{width:100%}
-.sync.ok.fresh{animation:spop .6s cubic-bezier(.2,.9,.3,1.4)}
-.sync.ok.fresh .spc{animation:spop .6s .1s cubic-bezier(.2,.9,.3,1.4) backwards}
-@keyframes swait{from{stroke-dashoffset:100}to{stroke-dashoffset:0}}
-@keyframes sfill{from{width:0}to{width:100%}}
-@keyframes ssh{to{transform:translateX(100%)}}
-@keyframes spop{0%{transform:scale(.9)}60%{transform:scale(1.05)}100%{transform:scale(1)}}
-@media(prefers-reduced-motion:reduce){.sync,.sync::before,.sync::after,.sync .sfg,.sync .spc{animation:none!important;transition:none!important}}
 @keyframes pl{0%,100%{opacity:1}50%{opacity:.25}}
 .rh{border-top:4px solid var(--line)}.rh.lv1{border-top-color:#16a34a}.rh.lv2{border-top-color:#3b82f6}.rh.lv3{border-top-color:#f59e0b}.rh.lv4{border-top-color:#dc2626}
 .rh1{display:flex;justify-content:space-between;align-items:center}
@@ -277,3 +247,33 @@ button:disabled{opacity:.55}
 .sfx{padding:0 14px;color:var(--mute);font-weight:600;font-size:.85rem}
 .step{display:flex;gap:8px;align-items:center}.step .pre{margin-top:0}.pre.grow{flex:1}.step .sq{padding:12px 18px;font-size:1.3rem;border-radius:12px}
 .rt .rtr{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}.rt .rtr .mu{color:var(--mute);font-size:.78rem}
+
+/* --- Kalendar katagi orqa tomoni: GitHub saqlash animatsiyasi --- */
+#jcal{--cr:100,116,139;--do:100;--p:0%}
+#jcal.st-wait,#jcal.st-offline{--cr:245,158,11}
+#jcal.st-busy{--cr:59,130,246}
+#jcal.st-ok{--cr:22,163,74}
+#jcal.st-err{--cr:220,38,38}
+.cd.flp{background:none;position:relative;overflow:visible;padding:0;perspective:520px}
+.cd.flp .fc{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .75s cubic-bezier(.4,.2,.2,1);transition-delay:calc(var(--i,0)*35ms)}
+#jcal.flipped .cd.flp .fc{transform:rotateY(180deg)}
+.fc>span{position:absolute;inset:0;border-radius:12px;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;overflow:hidden}
+.ff{padding:4px 2px}
+.cd.w .ff{background:#16a34a;color:#fff}.cd.l .ff{background:#dc2626;color:#fff}.cd.d .ff{background:var(--mute);color:#fff}
+.fb{transform:rotateY(180deg);isolation:isolate;background:var(--card);border:1.5px solid rgb(var(--cr));color:rgb(var(--cr));transition:border-color .3s}
+.fb::before{content:"";position:absolute;left:0;right:0;bottom:0;height:var(--p);z-index:-1;background:linear-gradient(0deg,rgba(var(--cr),.34),rgba(var(--cr),.10));transition:height .5s cubic-bezier(.2,.8,.2,1)}
+#jcal.st-wait .fb::before{animation:bwf 6s linear forwards}
+#jcal.st-busy .fb::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.25) 50%,transparent 70%);transform:translateX(-100%);animation:ssh 1.3s linear infinite}
+.fbr{position:relative;width:72%;max-width:34px;aspect-ratio:1}
+.fbr svg{width:100%;height:100%;transform:rotate(-90deg)}
+.fbr circle{fill:none;stroke-width:3.6}
+.fbr .sbg{stroke:var(--line)}
+.fbr .sfg{stroke:rgb(var(--cr));stroke-linecap:round;stroke-dasharray:100;stroke-dashoffset:var(--do);transition:stroke-dashoffset .5s cubic-bezier(.2,.8,.2,1),stroke .3s}
+#jcal.st-wait .fbr .sfg{animation:swait 6s linear forwards}
+.fbr .pc{position:absolute;inset:0;display:grid;place-items:center;font-size:.56rem;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.fbr .pc .ic{width:14px;height:14px;stroke-width:2.6}
+.cg.c7 .fbr .pc{font-size:.48rem}.cg.c7 .fbr .pc .ic{width:11px;height:11px}
+@keyframes swait{from{stroke-dashoffset:100}to{stroke-dashoffset:0}}
+@keyframes bwf{from{height:0}to{height:100%}}
+@keyframes ssh{to{transform:translateX(100%)}}
+@media(prefers-reduced-motion:reduce){.cd.flp .fc,.fb::before,.fb::after,.fbr .sfg{animation:none!important;transition:none!important}}
