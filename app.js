@@ -1,6 +1,6 @@
 "use strict";
 /* Ilova versiyasi: sw.js (VER) va index.html (?v=) bilan BIR XIL bo‘lishi shart */
-const APP_VER="v25";
+const APP_VER="v26";
 if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}
 const NY="America/New_York",$=id=>document.getElementById(id),pad=n=>String(n).padStart(2,"0");
 const ld=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
@@ -152,7 +152,7 @@ $("nadd").onclick=()=>{if(!$("nd").value||!$("ntm").value||!$("nt").value.trim()
 function tick(){
  const d=new Date(),loc=mins(d,tz),ny=mins(d,NY),inf=nyInfo(d),M=mkt(inf.dow,ny),diff=Math.round(loc-ny);
  $("clock").textContent=hm(loc)+":"+pad(Math.floor((loc%1)*60+1e-6));
- $("sub").textContent="New York "+hm(ny)+":"+pad(Math.floor((ny%1)*60+1e-6))+" · "+inf.date.split("-").reverse().join(".")+" · "+uo(NY);
+ $("sub").textContent=hm(ny)+":"+pad(Math.floor((ny%1)*60+1e-6))+" · "+inf.date.split("-").reverse().join(".")+" · "+uo(NY);
  updChart(d,loc,ny,M);
  const a=M.open?KZ.find(k=>act(k,ny)):null,bn=$("ban"),b={style:bn.style,set innerHTML(h){if(bn._h!==h){bn._h=h;bn.innerHTML=h}}};
  if(!M.open){b.style.background="var(--mute)";b.innerHTML="<b>Bozor yopiq (dam olish kuni)</b><span>Ochilishiga "+dur(M.toOpen)+"</span>"}
@@ -218,10 +218,22 @@ function ring(w,l){const n=w+l,C=2*Math.PI*42,g=w&&l?5:0;let h='<svg viewBox="0 
  const arc=(c,len,off)=>'<circle cx="55" cy="55" r="42" fill="none" stroke="'+c+'" stroke-width="11" stroke-dasharray="'+Math.max(0,len)+" "+C+'" stroke-dashoffset="'+(-off)+'" transform="rotate(-90 55 55)"/>';
  if(n){const a=w/n*C,b=l/n*C;if(w)h+=arc("#16a34a",a-g,0);if(l)h+=arc("#dc2626",b-g,a)}
  return h+'<text x="55" y="55" text-anchor="middle" class="dv">'+(n?Math.round(w/n*100)+"%":"—")+'</text><text x="55" y="69" text-anchor="middle" class="dl">Win rate</text><text x="55" y="80" text-anchor="middle" class="ds">'+n+" savdo</text></svg>"}
-function spark(T){const s=T.filter(t=>oc(t)!=="d").sort((a,b)=>tms(a)-tms(b));if(s.length<10)return'<div class="foot">Win rate trendi uchun kamida 10 ta savdo kerak.</div>';
- const r=[];for(let i=9;i<s.length;i++){let c=0;for(let j=i-9;j<=i;j++)if(oc(s[j])==="w")c++;r.push(c*10)}
- const X=i=>r.length>1?i*300/(r.length-1):150,Y=v=>52-v/100*48;
- return'<span class="lbl">Win rate trendi (oxirgi 10 savdo oynasi)</span><svg viewBox="0 0 300 56" width="100%" height="56" preserveAspectRatio="none" style="margin-top:6px"><line x1="0" x2="300" y1="'+Y(50)+'" y2="'+Y(50)+'" style="stroke:var(--line)" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/><polyline fill="none" style="stroke:var(--nyam)" stroke-width="2.4" stroke-linejoin="round" vector-effect="non-scaling-stroke" points="'+r.map((v,i)=>X(i).toFixed(1)+","+Y(v).toFixed(1)).join(" ")+'"/></svg><div class="foot">Hozirgi: '+r[r.length-1]+"% · punktir chiziq: 50%</div>"}
+const WCO=[["d","Kunlik","Oxirgi 30 ta savdo bo‘lgan kun"],["w","Haftalik","Oxirgi 12 hafta"],["m","Oylik","Oxirgi 12 oy"],["a","Barchasi","Butun tarix, har 10 savdo oynasida"]];
+let wc=ld("wc","d");if(!WCO.some(o=>o[0]===wc))wc="d";
+$("fp5").onclick=()=>openPick("Win rate grafik davri",WCO,wc,v=>{wc=v;sv("wc",wc);$("wsp").innerHTML=spark()});
+function spark(){$("fv5").textContent=WCO.find(o=>o[0]===wc)[1];
+ const s=trades.filter(t=>oc(t)!=="d"&&Number.isFinite(tms(t))).sort((a,b)=>tms(a)-tms(b));
+ if(wc==="a"){if(s.length<10)return'<div class="foot">Win rate trendi uchun kamida 10 ta savdo kerak.</div>';
+  const r=[];for(let i=9;i<s.length;i++){let c=0;for(let j=i-9;j<=i;j++)if(oc(s[j])==="w")c++;r.push(c*10)}
+  const X=i=>r.length>1?i*300/(r.length-1):150,Y=v=>52-v/100*48;
+  return'<svg viewBox="0 0 300 56" width="100%" height="56" preserveAspectRatio="none"><line x1="0" x2="300" y1="'+Y(50)+'" y2="'+Y(50)+'" style="stroke:var(--line)" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/><polyline fill="none" style="stroke:var(--nyam)" stroke-width="2.4" stroke-linejoin="round" vector-effect="non-scaling-stroke" points="'+r.map((v,i)=>X(i).toFixed(1)+","+Y(v).toFixed(1)).join(" ")+'"/></svg><div class="foot">Hozirgi: '+r[r.length-1]+"% · har 10 savdo oynasi · punktir chiziq: 50%</div>"}
+ const key=wc==="d"?k=>k:wc==="w"?k=>addD(k,-dow(k)):k=>k.slice(0,7),g={};
+ s.forEach(t=>{const k=key(dk(tms(t))),o=g[k]=g[k]||{w:0,n:0};o.n++;if(oc(t)==="w")o.w++});
+ const ks=Object.keys(g).sort().slice(wc==="d"?-30:-12);
+ if(!ks.length)return'<div class="foot">Bu davr uchun savdo yo‘q.</div>';
+ const lab=k=>wc==="m"?MS[+k.slice(5,7)-1]+" "+k.slice(2,4):k.slice(8,10)+"."+k.slice(5,7),bw=300/ks.length,Y=v=>56-v/100*52;
+ const bars=ks.map((k,i)=>{const o=g[k],p=Math.round(o.w/o.n*100),h=Math.max(1.5,p/100*52);return'<rect x="'+(i*bw+bw*.15).toFixed(1)+'" y="'+(56-h).toFixed(1)+'" width="'+(bw*.7).toFixed(1)+'" height="'+h.toFixed(1)+'" rx="2" fill="'+(p>=50?"#16a34a":"#dc2626")+'"'+(o.n<3?' fill-opacity=".4"':"")+"><title>"+lab(k)+": "+p+"% ("+o.n+" savdo)</title></rect>"}).join(""),L=g[ks[ks.length-1]];
+ return'<svg viewBox="0 0 300 60" width="100%" height="64" preserveAspectRatio="none"><line x1="0" x2="300" y1="'+Y(50)+'" y2="'+Y(50)+'" style="stroke:var(--mute)" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>'+bars+'</svg><div class="foot">'+lab(ks[0])+(ks.length>1?" – "+lab(ks[ks.length-1]):"")+" · oxirgi: "+Math.round(L.w/L.n*100)+"% ("+L.n+" savdo) · punktir: 50% · xira ustun: 3 tadan kam savdo</div>"}
 const rowH=(t,i)=>{const k=oc(t),has=mt==="r"||(t.u!==undefined&&t.u!==null),v=val(t),tm="";
  return'<div class="tr '+k+'"><div class="tl"><div class="t1">'+(k==="d"?"":'<span class="bdg '+k+'">'+(k==="w"?TP:SL)+"</span>")+"<b>"+esc(t.p)+'</b><span class="sd">'+esc(t.s)+"</span></div><small>"+tm+esc(kzs(t.kz))+" · "+esc(t.d)+"</small>"+(t.nt?'<div class="nt">'+esc(t.nt)+"</div>":"")+(t.mi&&t.mi.length?'<div class="mb">Xato: '+t.mi.map(esc).join(" · ")+"</div>":"")+'</div><div class="tv"><b class="'+cl(v)+'">'+(has?fv(v,1):"—")+'</b><button class="x xe" data-i="'+i+'" aria-label="Tahrirlash">'+IC("edit")+'</button><button class="x xd" data-i="'+i+'" aria-label="O‘chirish">'+IC("x")+"</button></div></div>"};
 function renderJr(){
@@ -345,7 +357,7 @@ function renderWin(T){const n=T.length,w=T.filter(t=>oc(t)==="w").length,l=T.fil
  $("dn").innerHTML=ring(w,l);
  $("leg").innerHTML='<div class="lg"><i style="background:#16a34a"></i>'+TP+"<b>"+w+pc(w)+'</b></div><div class="lg"><i style="background:#dc2626"></i>'+SL+"<b>"+l+pc(l)+"</b></div>";
  $("kpi").innerHTML='<div><b class="'+(pf>=1?"pos":(w+l)?"neg":"")+'">'+((w+l)?inf(pf):"—")+'</b>Profit Factor</div><div><b>'+((w+l)?inf(rr):"—")+'</b>Foyda/Zarar nisbati</div><div><b class="'+cl(ex)+'">'+((w+l)?fv(ex,1):"—")+'</b>Kutilgan natija</div><div><b class="pos">'+(w?fv(aw):"—")+'</b>O‘rt. foyda</div><div><b class="neg">'+(l?fv(-al):"—")+'</b>O‘rt. zarar</div><div><b>'+n+'</b>Savdolar</div>';
- $("wsp").innerHTML=spark(T);
+ $("wsp").innerHTML=spark();
 }
 function renderStats(){
  $("fv1").textContent=SPO.find(o=>o[0]===sp)[1];$("fv2").textContent=mt==="u"?"$ (dollar)":"R (risk)";$("fv3").textContent=CMO.find(o=>o[0]===cm)[1];$("fv4").textContent=ANO.find(o=>o[0]===an)[1];
