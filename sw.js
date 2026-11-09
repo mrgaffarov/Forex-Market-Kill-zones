@@ -2,7 +2,7 @@
 /* Forex Kill Zone — service worker.
    Yangi versiya chiqarganda 3 joyda BIR XIL raqam qo‘ying:
    1) shu fayldagi VER   2) app.js dagi APP_VER   3) index.html dagi style.css?v= va app.js?v= */
-const VER = "v32";
+const VER = "v34";
 const SHELL = "kz-shell-" + VER;   // index.html, css, js, manifest, ikonka
 const RUNTIME = "kz-fonts";        // Google Fonts (versiyaga bog‘liq emas)
 const CORE = ["manifest.json", "icon-192.png", "icon-512.png"];
@@ -40,19 +40,22 @@ self.addEventListener("fetch", e => {
   const font = url.hostname === "fonts.googleapis.com" || url.hostname === "fonts.gstatic.com";
   if (!same && !font) return;                       // api.github.com va boshqalar doim to‘g‘ridan-to‘g‘ri tarmoqqa
 
-  if (req.mode === "navigate") { e.respondWith(page(req)); return; }
+  if (req.mode === "navigate") { e.respondWith(page(e, req)); return; }
   e.respondWith(swr(e, req, same ? SHELL : RUNTIME));
 });
 
-// Sahifa: avval tarmoq (yangi versiya), internet yo‘q bo‘lsa keshdagi index.html
-async function page(req) {
-  try {
-    const r = await fetch(req);
-    if (r.ok) (await caches.open(SHELL)).put("index.html", r.clone());
-    return r;
-  } catch (_) {
-    return (await caches.match("index.html", { ignoreSearch: true })) || Response.error();
-  }
+// Sahifa: avval tarmoq (yangi versiya). Tarmoq NAV_TMO ichida javob bermasa yoki uzilsa, keshdagi index.html beriladi.
+// Kesh yo‘q (birinchi ochilish) bo‘lsa, tarmoqni kutadi. Kechikkan so‘rov orqada tugaydi va keshni yangilaydi.
+const NAV_TMO = 3000;
+async function page(e, req) {
+  const c = await caches.open(SHELL);
+  let saved;
+  const net = fetch(req).then(r => { if (r.ok) saved = c.put("index.html", r.clone()); return r; });
+  e.waitUntil(net.then(() => saved).catch(() => {}));
+  const cached = await c.match("index.html", { ignoreSearch: true });
+  if (!cached) return net.catch(() => Response.error());
+  const slow = new Promise(ok => setTimeout(() => ok(cached), NAV_TMO));
+  return Promise.race([net.catch(() => cached), slow]);
 }
 
 // Fayllar: keshdan darhol, orqada yangilab qo‘yadi

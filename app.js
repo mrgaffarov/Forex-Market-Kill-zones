@@ -1,6 +1,6 @@
 "use strict";
 /* Ilova versiyasi: sw.js (VER) va index.html (?v=) bilan BIR XIL bo‘lishi shart */
-const APP_VER="v32";
+const APP_VER="v34";
 if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}
 const NY="America/New_York",$=id=>document.getElementById(id),pad=n=>String(n).padStart(2,"0");
 const ld=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
@@ -174,8 +174,10 @@ const eKZ=()=>edit($("edit"),KZ,"Boshlanish","Tugash",()=>{sv("kz",KZ);buildTL()
 const eSS=()=>edit($("sedit"),SS,"Ochilish","Yopilish",()=>{sv("ss",SS.map(y=>[y.s,y.e]));buildTL();tick()});
 $("reset").onclick=()=>{KZ=JSON.parse(JSON.stringify(DEF));sv("kz",KZ);eKZ();buildTL();tick()};
 $("sreset").onclick=()=>{SSD.forEach((v,i)=>{SS[i].s=v[0];SS[i].e=v[1]});sv("ss",SSD);eSS();buildTL();tick()};
-function applyTh(){th==="auto"?document.documentElement.removeAttribute("data-theme"):document.documentElement.setAttribute("data-theme",th);document.querySelectorAll("#th button").forEach(b=>b.classList.toggle("on",b.dataset.v===th))}
+function applyTh(){th==="auto"?document.documentElement.removeAttribute("data-theme"):document.documentElement.setAttribute("data-theme",th);
+ try{const isD=th==="dark"||(th==="auto"&&!!window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches),m=document.querySelector("meta[name=theme-color]");if(m)m.content=isD?"#0b121b":"#f4f6f9"}catch(e){}document.querySelectorAll("#th button").forEach(b=>b.classList.toggle("on",b.dataset.v===th))}
 document.querySelectorAll("#th button").forEach(b=>b.onclick=()=>{th=b.dataset.v;sv("th",th);applyTh()});
+try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{if(th==="auto")applyTh()})}catch(e){}
 
 /* ---- jurnal ---- */
 const TP="Foyda (TP)",SL="Zarar (SL)";
@@ -194,7 +196,7 @@ const tms=t=>{
 };
 
 const val=t=>mt==="u"?(+t.u||0):(+t.r||0);
-const oc=t=>t.out==="w"||t.out==="l"||t.out==="d"?t.out:((t.r>0||t.u>0)?"w":(t.r<0||t.u<0)?"l":"d");
+const oc=t=>t.out==="d"||((+t.r||0)===0&&(+t.u||0)===0)?"d":t.out==="w"||t.out==="l"?t.out:((t.r>0||t.u>0)?"w":(t.r<0||t.u<0)?"l":"d");
 const fv=(v,sg)=>{const a=Math.abs(v),x=mt==="u"?"$"+a.toFixed(2):a.toFixed(1)+"R";return(v<0?"−":sg&&v>0?"+":"")+x};
 const cl=v=>v>0?"pos":v<0?"neg":"";
 const MN=["Yanvar","Fevral","Mart","Aprel","May","Iyun","Iyul","Avgust","Sentyabr","Oktyabr","Noyabr","Dekabr"],MS=["yan","fev","mar","apr","may","iyn","iyl","avg","sen","okt","noy","dek"],WD=["Du","Se","Ch","Pa","Ju","Sh","Ya"];
@@ -280,8 +282,10 @@ function chips(){$("fml").textContent=fmi.size?[...fmi].join(", "):"Xato yo‘q"
  $("emi").innerHTML=MI.map((x,i)=>'<span class="ch">'+esc(x)+'<button class="cx" data-i="'+i+'" aria-label="O‘chirish">×</button></span>').join("")}
 $("emi").onclick=e=>{const b=e.target.closest(".cx");if(b){const it=MI[+b.dataset.i];if(it!==undefined)askDel("Xatoni o‘chirish","“"+it+"” ro‘yxatdan olib tashlanadi",()=>{const j=MI.indexOf(it);if(j>=0){MI.splice(j,1);sv("mi",MI);chips()}})}};
 $("ami").onclick=()=>{const v=$("nmi").value.trim();if(v&&!MI.includes(v)){MI.push(v);sv("mi",MI);$("nmi").value="";chips()}};
-let editT=null,editSnap="",editWhen="";
+let editT=null,editSnap="",editWhen="",editR="",editU="";
 const nyHM=ts=>{const w=new Date(wall(ts,NY));return pad(w.getUTCHours())+":"+pad(w.getUTCMinutes())};
+/* 1R qiymati = (boshlang‘ich balans + shu vaqtgacha yopilgan savdolar $) x risk%; MT5 importdagi qoida bilan bir xil */
+const riskAmt=(ts,skip)=>{const J=curJ();let b=J.b0;trades.forEach(x=>{if(x!==skip&&x.u!==undefined&&x.u!==null&&Number.isFinite(+x.u)&&tms(x)<ts)b+=+x.u});if(!(b>0))b=J.b0;return b*J.rk/100};
 function setOut(v){outc=v;document.querySelectorAll("#out button").forEach(x=>x.classList.toggle("on",x.dataset.v===v))}
 function setSide(v){side=v;document.querySelectorAll("#side button").forEach(x=>x.classList.toggle("on",x.dataset.v===v))}
 const formSnap=()=>JSON.stringify([outc,$("usd").value.trim(),$("res").value.trim(),$("td").value,$("tt").value,$("pair").value.trim().toUpperCase(),side,[...fmi].sort(),$("note").value.trim()]);
@@ -291,32 +295,37 @@ function formHead(k,edit){const d=D(k);$("ttl").textContent=edit?"Savdoni tahrir
 function openForm(k){if(curJ().arc){toast("Jurnal yopilgan, faqat ko‘rish");return}if(editT){editT=null;clearForm()}
  $("td").value=k;$("tt").value=nowT();formHead(k,false)}
 function openEdit(t){if(curJ().arc){toast("Jurnal yopilgan, faqat ko‘rish");return}const ts=tms(t);if(!Number.isFinite(ts)){toast("Savdo vaqti noto‘g‘ri");return}
- editT=t;setOut(oc(t)==="l"?"l":"w");setSide(t.s==="Sell"?"Sell":"Buy");
- const rr=Math.abs(+t.r||0),uu=(t.u===undefined||t.u===null)?NaN:Math.abs(+t.u);
- $("res").value=rr?String(rr):"";$("usd").value=Number.isFinite(uu)?String(uu):"";
+ editT=t;const oo=oc(t),ab=v=>oo==="d"?v:Math.abs(v);setOut(oo);setSide(t.s==="Sell"?"Sell":"Buy");
+ const rr=+t.r||0,uu=(t.u===undefined||t.u===null)?NaN:+t.u;
+ $("res").value=rr?String(ab(rr)):"";$("usd").value=Number.isFinite(uu)?String(ab(uu)):"";
  $("pair").value=(t.p&&t.p!=="—")?t.p:"";$("note").value=t.nt||"";
  fmi=new Set(t.mi||[]);chips();
  $("td").value=dk(ts);$("tt").value=nyHM(ts);
- editWhen=$("td").value+"|"+$("tt").value;editSnap=formSnap();formHead($("td").value,true)}
+ editR=$("res").value.trim();editU=$("usd").value.trim();editWhen=$("td").value+"|"+$("tt").value;editSnap=formSnap();formHead($("td").value,true)}
 function closeForm(){$("tm").classList.add("hide");if(editT){editT=null;clearForm()}}
 $("fab").onclick=()=>openForm(selDay||todayK());
 $("tbd").onclick=$("tclose").onclick=closeForm;
 $("fmb").onclick=()=>openPick("Xatolar",MI.map(m=>[m,m]),fmi,s=>{fmi=new Set(s);chips()},true);
 $("side").onclick=e=>{const b=e.target.closest("button");if(!b)return;side=b.dataset.v;document.querySelectorAll("#side button").forEach(x=>x.classList.toggle("on",x===b))};
 $("out").onclick=e=>{const b=e.target.closest("button");if(!b)return;outc=b.dataset.v;document.querySelectorAll("#out button").forEach(x=>x.classList.toggle("on",x===b))};
-$("add").onclick=()=>{const rv=Math.abs(parseFloat($("res").value)),uv=Math.abs(parseFloat($("usd").value));
- if(isNaN(rv)&&isNaN(uv)){toast("P&L ($) yoki R kiriting");return}
+$("add").onclick=()=>{const be=outc==="d",pv=x=>{const n=parseFloat(x);return be?n:Math.abs(n)},rv=pv($("res").value),uv=pv($("usd").value);
+ if(!be&&!(rv>0||uv>0)){toast(isNaN(rv)&&isNaN(uv)?"P&L ($) yoki R kiriting":"0 qiymat uchun Breakeven tanlang");return}
  if(!$("td").value||!$("tt").value){toast("Sana va vaqtni kiriting");return}
  if(editT&&formSnap()===editSnap){closeForm();toast("O‘zgarish yo‘q");return}
- const td=$("td").value,tt=$("tt").value,ts=toUTC(tt>="17:00"?addD(td,-1):td,tt,NY),dd=new Date(ts),i=nyInfo(dd),nm=mins(dd,NY),k=mkt(i.dow,nm).open?KZ.find(x=>act(x,nm)):null,sg=outc==="w"?1:-1;
- const f={p:$("pair").value.trim().toUpperCase()||"—",s:side,out:outc,r:sg*(isNaN(rv)?0:rv),u:isNaN(uv)?undefined:sg*uv,nt:$("note").value.trim(),mi:[...fmi]};
+ const td=$("td").value,tt=$("tt").value,ts=toUTC(tt>="17:00"?addD(td,-1):td,tt,NY),dd=new Date(ts),i=nyInfo(dd),nm=mins(dd,NY),k=mkt(i.dow,nm).open?KZ.find(x=>act(x,nm)):null,sg=outc==="l"?-1:1;
+ let R=be?(rv||0):(rv>0?rv:0),U=be?(uv||0):(uv>0?uv:0),ad="";
+ if(!be){const cR=!editT||$("res").value.trim()!==editR,cU=!editT||$("usd").value.trim()!==editU,mode=!(uv>0)?"u":!(rv>0)?"r":(cR&&!cU)?"u":(cU&&!cR)?"r":"";
+  if(mode){const rb=riskAmt(editT&&td+"|"+tt===editWhen?tms(editT):ts,editT);
+   if(!(rb>0)){toast("Jurnal balansi 0: P&L ($) va R ni ikkalasini kiriting");return}
+   if(mode==="u"){U=+(R*rb).toFixed(2);ad="$ ≈ "+U}else{R=+(U/rb).toFixed(2);ad="R ≈ "+R}}}
+ const f={p:$("pair").value.trim().toUpperCase()||"—",s:side,out:outc,r:sg*R,u:sg*U,nt:$("note").value.trim(),mi:[...fmi]};
  let t;
  if(editT){t=editT;Object.assign(t,f);if(f.u===undefined)delete t.u;
   if(td+"|"+tt!==editWhen){t.ts=ts;t.kz=k?k.n:"Kill zone tashqarida";t.d=i.date+" "+hm(nm)+" NY";selDay=dk(ts);anc=selDay}}
  else{t=Object.assign({ts,kz:k?k.n:"Kill zone tashqarida",d:i.date+" "+hm(nm)+" NY"},f);trades.unshift(t);selDay=dk(ts);anc=selDay}
  const was=!!editT;sv("tr",trades);
  if(was)closeForm();else{["res","usd","note"].forEach(id=>$(id).value="");fmi=new Set();chips();$("tm").classList.add("hide")}
- renderJr();toast(was?"Yangilandi":"Saqlandi")};
+ renderJr();toast((was?"Yangilandi":"Saqlandi")+(ad?" · "+ad:""))};
 $("tdel").onclick=()=>{const tr=editT;if(!tr)return;askDel("Savdoni o‘chirish","Bu amalni qaytarib bo‘lmaydi",()=>{const q=trades.indexOf(tr);if(q>=0){trades.splice(q,1);sv("tr",trades)}closeForm();renderJr();toast("O‘chirildi")})};
 /* ---- statistika ---- */
 const SPO=[[7,"Oxirgi 7 kun"],[30,"Oxirgi 30 kun"],[90,"Oxirgi 90 kun"],[365,"Oxirgi 1 yil"],[0,"Hammasi"]],CMO=[["d","Kunlik","Oxirgi 30 sessiya (hafta oxiri savdo bo‘lsa ham)"],["w","Haftalik","Oxirgi 12 hafta"],["m","Oylik","Oxirgi 12 oy"],["a","Hammasi","Barcha savdolar"]],ANO=[["kz","Kill zone","Kill zone ichida va tashqarida natija, RR"],["ss","Bozor sessiyasi","Sydney, Tokio, London, New York bo‘yicha natija va RR"],["dw","Hafta kuni","Qaysi kun samarali"],["hr","Soat (New York)","Qaysi soatda yaxshi savdo qilasiz"],["mi","Xatolar","Takrorlanadigan xatolar va ularning narxi"]],MTO=[["r","R (risk birligi)"],["u","$ (dollar)"]];
@@ -480,7 +489,7 @@ function applySets(o){if(Array.isArray(o.jurnallar)){const L=o.jurnallar.map(x=>
  if(a.mavzu){th=a.mavzu;sv("th",th);applyTh()}if(a.soat12!==undefined){h12=a.soat12;sv("h12",h12);$("h24").checked=!h12}if(a.tovush!==undefined){snd=a.tovush;sv("snd",snd);$("snd").checked=snd}if(a.ogohlantirish!==undefined){pre=a.ogohlantirish;sv("pre",pre);$("pre").value=pre}
  if(Number.isFinite(a.utc)){cu=Math.max(-12,Math.min(14,Math.round(a.utc*2)/2));sv("cu",cu)}if(a.zona&&okTz(a.zona)){tz=a.zona;sv("tz",tz)}refreshTz()}
 const refreshAll=()=>{chips();eKZ();eSS();buildTL();renderJr();renderCal();tick()};
-const ghErr=e=>{const m=String(e&&e.message||e);return m==="conflict"?"GitHub’da boshqa qurilmadan o‘zgarish bor. Avval “Tiklash”ni bosing (yoki “To‘liq saqlash” bilan ustiga yozing).":m==="401"?"Token noto‘g‘ri.":m==="403"?"Ruxsat yo‘q (token huquqini tekshiring).":m==="404"?"Omborxona topilmadi (nom yoki token huquqini tekshiring).":/^\d+$/.test(m)?"Xato: "+m:"Internet yo‘q yoki ulanmadi."};
+const ghErr=e=>{const m=String(e&&e.message||e);return m==="conflict"?"GitHub’da boshqa qurilmadan o‘zgarish bor. Avval “Tiklash”ni bosing (yoki “Qo‘shimcha” bo‘limidagi “Hammasini qayta yozish (GitHub)” bilan ustiga yozing).":m==="401"?"Token noto‘g‘ri.":m==="403"?"Ruxsat yo‘q (token huquqini tekshiring).":m==="404"?"Omborxona topilmadi (nom yoki token huquqini tekshiring).":/^\d+$/.test(m)?"Xato: "+m:"Internet yo‘q yoki ulanmadi."};
 async function ghPut(path,content,msg,hkey,over){const key=hsh(hkey===undefined?content:hkey),c=GC[path];if(c&&c.h===key)return"o‘zgarmagan";let sha=c&&c.sha;
  for(let a=0;a<2;a++){const body={message:msg,content:b64(content)};if(sha)body.sha=sha;
   const r=await fetch(ghf(path),{method:"PUT",headers:{...ghh(),"Content-Type":"application/json"},body:JSON.stringify(body)});
@@ -489,7 +498,7 @@ async function ghPut(path,content,msg,hkey,over){const key=hsh(hkey===undefined?
   throw new Error(r.status)}}
 async function ghSave0(force,quiet){if(!GH.t){ghm("Avval tokenni kiriting.");return"token"}if(force){GC={};sv("ghc",GC)}ghm("Saqlanmoqda…");const L=[];
  try{const mm=monthsOf(),keys=new Set(Object.keys(mm));const sd=JB()+"savdolar/";Object.keys(GC).forEach(p=>{const m=p.startsWith(sd)&&p.slice(sd.length).match(/^(\d{4}-\d{2})\.json$/);if(m)keys.add(m[1])});
-  const total=keys.size+2;let done=0;const adv=()=>{done++;setProg(done/total*100);SGN=done+"/"+total+" fayl";setSync("busy")};
+  const total=keys.size+2;let done=0;const adv=()=>{done++;setProg(done/total*100);setSync("busy")};
   for(const k of [...keys].sort()){L.push(k+".json — "+await ghPut(JB()+"savdolar/"+k+".json",pack(k,mm[k]||[]),"Savdolar "+k+" yangilandi",undefined,force));adv()}
   L.push("sozlamalar.json — "+await ghPut("data/sozlamalar.json",setsPack(),"Sozlamalar yangilandi",undefined,force));adv();
   L.push("statistika.json — "+await ghPut(JB()+"statistika.json",statPack(true),"Statistika yangilandi",statPack(false),true));adv();
@@ -509,21 +518,19 @@ async function ghRestore0(){ghm("Yuklanmoqda…");
   sv("ghc",GC);refreshAll();renderBaza();ghm("GitHub’dan tiklandi: "+trades.length+" ta savdo ("+nf+" oy fayli)"+(all.length>trades.length?", "+(all.length-trades.length)+" ta yaroqsiz yozuv o‘tkazib yuborildi":"")+(st.ok?", sozlamalar":"")+".");toast("Tiklandi");return"ok"}
  catch(e){ghm(ghErr(e));return{e}}};
 
-let syncing=false,again=false,at=null,retry=null,sstate="off",syncOff=0;
+let syncing=false,again=false,at=null,retry=null,syncOff=0;
 const autoOn=()=>!!(GH.t&&GH.o&&GH.r)&&ld("ghauto",true);
-const SYT={off:"GitHub ulanmagan",idle:"Qo‘lda saqlash",wait:"Saqlash kutilmoqda",busy:"GitHub’ga saqlanmoqda",ok:"GitHub’ga saqlandi",offline:"Internet yo‘q",err:"GitHub xatosi"};
-const SYS={off:"Ulash uchun bosing",idle:"Bosib saqlang",wait:"2 soniyada avtomatik saqlanadi",offline:"Keyinroq qayta uriniladi",err:"Bosib qayta urining"};
-let PG=0,SGN="",hideT=null,sawBusy=false;
+let PG=0,hideT=null,sawBusy=false;
 const gsb=()=>$("gsb");
 function setProg(p){PG=Math.max(0,Math.min(100,Math.round(p)));gsb().style.setProperty("--p",PG+"%")}
-function setSync(st){const g=gsb(),fresh=st==="ok"&&sawBusy;sstate=st;clearTimeout(hideT);
+function setSync(st){const g=gsb(),fresh=st==="ok"&&sawBusy;clearTimeout(hideT);
  g.classList.remove("st-wait","st-busy","st-ok","st-err","st-offline");
  if(st==="wait"){g.classList.remove("show");void g.offsetWidth;g.classList.add("st-wait","show")}
  else if(st==="busy"){sawBusy=true;g.classList.add("st-busy","show")}
  else if(fresh||st==="err"||st==="offline"){sawBusy=false;setProg(100);g.classList.add("st-"+st,"show");hideT=setTimeout(()=>g.classList.remove("show"),fresh?1300:2600)}
  else{sawBusy=false;g.classList.remove("show")}}
 function dirty(){try{if(syncOff)return;if(!autoOn()){setSync(GH.t?"idle":"off");return}clearTimeout(at);setSync("wait");at=setTimeout(()=>syncNow(false,true),2000)}catch(e){}}
-async function syncNow(force,quiet){if(syncing){again=true;return}syncing=true;clearTimeout(at);clearTimeout(retry);setProg(0);SGN="Tayyorlanmoqda…";setSync("busy");$("ghsave").disabled=true;
+async function syncNow(force,quiet){if(syncing){again=true;return}syncing=true;clearTimeout(at);clearTimeout(retry);setProg(0);setSync("busy");$("ghsave").disabled=true;
  const e=await ghSave0(force,quiet);syncing=false;$("ghsave").disabled=false;
  if(!e)setSync("ok");else if(e==="token")setSync("off");else{const m=String(e&&e.message||e),net=!/^\d+$/.test(m)&&m!=="conflict";setSync(net?"offline":"err");if(net)retry=setTimeout(()=>{if(autoOn())syncNow(false,true)},30000)}
  renderBaza();if(again){again=false;dirty()}}
@@ -571,9 +578,9 @@ $("jsave").onclick=()=>{const n=$("jn").value.trim().slice(0,30),b0=parseFloat($
 
 /* ---- MT5 (Exness statement) import ---- */
 let IM=null;
-const PDFJS="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js",PDFW="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-const loadJS=u=>new Promise((ok,no)=>{const s=document.createElement("script");s.src=u;s.onload=ok;s.onerror=()=>no(new Error("pdfjs"));document.head.appendChild(s)});
-async function fileText(f){if(/\.pdf$/i.test(f.name)){if(!window.pdfjsLib)await loadJS(PDFJS);pdfjsLib.GlobalWorkerOptions.workerSrc=PDFW;
+const PDFJS="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js",PDFW="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js",PDFSRI="sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e";
+const loadJS=(u,sri)=>new Promise((ok,no)=>{const s=document.createElement("script");if(sri){s.integrity=sri;s.crossOrigin="anonymous"}s.src=u;s.onload=ok;s.onerror=()=>no(new Error("pdfjs"));document.head.appendChild(s)});
+async function fileText(f){if(/\.pdf$/i.test(f.name)){if(!window.pdfjsLib)await loadJS(PDFJS,PDFSRI);pdfjsLib.GlobalWorkerOptions.workerSrc=PDFW;
   const d=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;let t="";for(let p=1;p<=d.numPages;p++){t+=(await(await d.getPage(p)).getTextContent()).items.map(i=>i.str).join(" ")+" "}return t}
  return f.text()}
 function parseSt(T0){const pn=(T0.match(/Page \d+ of (\d+)/)||[])[1];if(pn)T0=T0.replace(new RegExp("Page \\d+ of "+pn,"g")," ");
