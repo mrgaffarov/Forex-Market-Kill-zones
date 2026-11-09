@@ -1,6 +1,6 @@
 "use strict";
 /* Ilova versiyasi: sw.js (VER) va index.html (?v=) bilan BIR XIL bo‘lishi shart */
-const APP_VER="v26";
+const APP_VER="v27";
 if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}
 const NY="America/New_York",$=id=>document.getElementById(id),pad=n=>String(n).padStart(2,"0");
 const ld=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
@@ -218,9 +218,9 @@ function ring(w,l){const n=w+l,C=2*Math.PI*42,g=w&&l?5:0;let h='<svg viewBox="0 
  const arc=(c,len,off)=>'<circle cx="55" cy="55" r="42" fill="none" stroke="'+c+'" stroke-width="11" stroke-dasharray="'+Math.max(0,len)+" "+C+'" stroke-dashoffset="'+(-off)+'" transform="rotate(-90 55 55)"/>';
  if(n){const a=w/n*C,b=l/n*C;if(w)h+=arc("#16a34a",a-g,0);if(l)h+=arc("#dc2626",b-g,a)}
  return h+'<text x="55" y="55" text-anchor="middle" class="dv">'+(n?Math.round(w/n*100)+"%":"—")+'</text><text x="55" y="69" text-anchor="middle" class="dl">Win rate</text><text x="55" y="80" text-anchor="middle" class="ds">'+n+" savdo</text></svg>"}
-const WCO=[["d","Kunlik","Oxirgi 30 ta savdo bo‘lgan kun"],["w","Haftalik","Oxirgi 12 hafta"],["m","Oylik","Oxirgi 12 oy"],["a","Barchasi","Butun tarix, har 10 savdo oynasida"]];
+const WCO=[["d","Kunlik","Bugungi savdolar (grafik: oxirgi 30 kun)"],["w","Haftalik","Shu hafta (grafik: oxirgi 12 hafta)"],["m","Oylik","Shu oy (grafik: oxirgi 12 oy)"],["a","Barchasi","Butun tarix"]];
 let wc=ld("wc","d");if(!WCO.some(o=>o[0]===wc))wc="d";
-$("fp5").onclick=()=>openPick("Win rate grafik davri",WCO,wc,v=>{wc=v;sv("wc",wc);$("wsp").innerHTML=spark()});
+$("fp5").onclick=()=>openPick("Win rate davri",WCO,wc,v=>{wc=v;sv("wc",wc);renderWin()});
 function spark(){$("fv5").textContent=WCO.find(o=>o[0]===wc)[1];
  const s=trades.filter(t=>oc(t)!=="d"&&Number.isFinite(tms(t))).sort((a,b)=>tms(a)-tms(b));
  if(wc==="a"){if(s.length<10)return'<div class="foot">Win rate trendi uchun kamida 10 ta savdo kerak.</div>';
@@ -351,8 +351,9 @@ function bars(o,sort,lab){const ks=Object.keys(o);if(!ks.length)return'<div clas
  return ks.map(k=>{const x=o[k];return'<div class="br"><div class="bh"><b>'+esc(lab?lab(k):k)+"</b><span>"+x.n+" savdo · win rate "+(x.dd?Math.round(x.w/x.dd*100)+"%":"—")+(x.n<5?'<i class="few">kam</i>':"")+'</span><em class="'+cl(x.r)+'">'+fv(x.r,1)+'</em></div><div class="bt"><i class="'+(x.r>=0?"g":"r")+'" style="width:'+Math.max(3,Math.abs(x.r)/mx*100)+'%"></i></div></div>'}).join("")}
 const bestLine=(o,lab)=>{const k=Object.keys(o).filter(k=>o[k].n>=3).sort((a,b)=>o[b].r-o[a].r)[0];return k&&o[k].r>0?'<div class="foot" style="margin-top:8px">Eng yaxshi: <b>'+esc(lab?lab(k):k)+"</b> · "+fv(o[k].r,1)+"</div>":""};
 /* Win rate bloki — endi Statistika bo‘limida (tanlangan davr bo‘yicha) */
-function renderWin(T){const n=T.length,w=T.filter(t=>oc(t)==="w").length,l=T.filter(t=>oc(t)==="l").length;
- $("wrp").textContent=(SPO.find(o=>o[0]===sp)||SPO[0])[1];
+function renderWin(){const td=todayK(),wst=addD(td,-dow(td)),T=trades.filter(t=>{if(wc==="a")return true;const k=dk(tms(t));return wc==="d"?k===td:wc==="w"?k>=wst:k.slice(0,7)===td.slice(0,7)});
+ const n=T.length,w=T.filter(t=>oc(t)==="w").length,l=T.filter(t=>oc(t)==="l").length;
+ $("wrp").textContent=({d:"· bugun",w:"· shu hafta",m:"· shu oy",a:"· hammasi"})[wc];
  const vs=T.filter(t=>oc(t)==="w").map(val),vl=T.filter(t=>oc(t)==="l").map(val),gw=vs.reduce((a,v)=>a+v,0),gl=-vl.reduce((a,v)=>a+v,0),aw=w?gw/w:0,al=l?gl/l:0,pf=gl?gw/gl:(gw>0?Infinity:0),rr=al?aw/al:(aw>0?Infinity:0),ex=(w+l)?(gw-gl)/(w+l):0,pc=v=>(w+l)?" <small>"+Math.round(v/(w+l)*100)+"%</small>":"",inf=v=>v===Infinity?"∞":v.toFixed(2);
  $("dn").innerHTML=ring(w,l);
  $("leg").innerHTML='<div class="lg"><i style="background:#16a34a"></i>'+TP+"<b>"+w+pc(w)+'</b></div><div class="lg"><i style="background:#dc2626"></i>'+SL+"<b>"+l+pc(l)+"</b></div>";
@@ -363,7 +364,7 @@ function renderStats(){
  $("fv1").textContent=SPO.find(o=>o[0]===sp)[1];$("fv2").textContent=mt==="u"?"$ (dollar)":"R (risk)";$("fv3").textContent=CMO.find(o=>o[0]===cm)[1];$("fv4").textContent=ANO.find(o=>o[0]===an)[1];
  const T=trades.filter(t=>!sp||tms(t)>Date.now()-sp*864e5),n=T.length,DW=["Dushanba","Seshanba","Chorshanba","Payshanba","Juma","Shanba","Yakshanba"];
  $("swarn").innerHTML=n<20?'<div class="warn"><b>Ma’lumot kam:</b> tahlil davrida '+n+' ta savdo bor. Ishonchli xulosa uchun kamida 20–30 ta kerak.</div>':"";
- renderWin(T);
+ renderWin();
  let h="";
  if(an==="kz"){const g=grp(T,t=>[t.kz||"—"]);h=bars(g,null,kzs)+bestLine(g,kzs)}
  else if(an==="dw"){const g=grp(T,t=>[DNs[D(dk(tms(t))).getUTCDay()]]);h=bars(g,(a,b)=>DW.indexOf(a)-DW.indexOf(b))+bestLine(g)}
