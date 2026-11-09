@@ -2,7 +2,7 @@
 /* Forex Kill Zone — service worker.
    Yangi versiya chiqarganda 3 joyda BIR XIL raqam qo‘ying:
    1) shu fayldagi VER   2) app.js dagi APP_VER   3) index.html dagi style.css?v= va app.js?v= */
-const VER = "v27";
+const VER = "v29";
 const SHELL = "kz-shell-" + VER;   // index.html, css, js, manifest, ikonka
 const RUNTIME = "kz-fonts";        // Google Fonts (versiyaga bog‘liq emas)
 const CORE = ["manifest.json", "icon-192.png", "icon-512.png"];

@@ -283,3 +283,13 @@ input.rng::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:
 .tv .x{padding:8px 6px}
 .xe:hover,.xe:active{color:var(--nyam)}
 button.dng{color:var(--bad);border-color:rgba(220,58,79,.45);background:none}
+
+/* --- v28: jurnallar --- */
+#jb{margin-top:8px;max-width:220px}#jb span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* --- v29 --- */
+.jtop{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}#jb{margin:0;max-width:min(62vw,240px)}
+.ilist{max-height:34vh;overflow:auto;margin:8px 0 12px;border-top:1px solid var(--line)}
+.irw{display:flex;gap:10px;align-items:center;padding:8px 2px;border-bottom:1px solid var(--line);font-size:.78rem}
+.irw input{width:auto;margin:0;flex:none}.irw .mu{color:var(--mute)}.irw b{margin-left:auto;white-space:nowrap}
+.irw.off{opacity:.45}

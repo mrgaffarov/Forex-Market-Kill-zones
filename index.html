@@ -8,7 +8,7 @@
 <link rel="icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=27">
+<link rel="stylesheet" href="style.css?v=29">
 <title>Forex Kill Zone</title>
 </head>
 <body>
@@ -50,6 +50,7 @@
 </div>
 
 <div id="jr" class="pg hide">
+  <div class="jtop"><button class="pill" id="jb" aria-label="Jurnalni tanlash"><svg class="ic"><use href="#i-db"/></svg><span id="jnm"></span><svg class="ic s"><use href="#i-chev"/></svg></button><button class="pill" id="imb"><svg class="ic"><use href="#i-plus"/></svg><span>MT5 import</span></button></div>
   <div class="jhd"><div class="seg4" id="vw"><button data-v="w">Hafta</button><button data-v="m" class="on">Oy</button><button data-v="y">Yil</button><button data-v="a">Hammasi</button></div>
     <div class="seg2" id="mt"><button data-v="r" class="on">R</button><button data-v="u">$</button></div></div>
   <div class="jnav"><button class="nv" id="jprev" aria-label="Oldingi">‹</button><b id="jttl"></b><button class="nv" id="jnext" aria-label="Keyingi">›</button></div>
@@ -60,6 +61,7 @@
 </div>
 
 <div id="stats" class="pg hide">
+  <div class="foot" id="sjn" style="margin:0 2px 8px"></div>
   <div class="fr"><button class="fp" id="fp1"><span><small>Davr</small><b id="fv1"></b></span><svg class="ic s"><use href="#i-chev"/></svg></button><button class="fp" id="fp2"><span><small>Birlik</small><b id="fv2"></b></span><svg class="ic s"><use href="#i-chev"/></svg></button></div>
   <div id="swarn"></div>
   <section class="card"><div class="ch2"><h2>Win rate <small id="wrp"></small></h2><button class="fp sm" id="fp5"><b id="fv5"></b><svg class="ic s"><use href="#i-chev"/></svg></button></div><div class="wr"><div id="dn"></div><div id="leg"></div></div><div class="kpis" id="kpi"></div><div class="spk" id="wsp"></div></section>
@@ -132,7 +134,7 @@
     <div class="foot">Faqat ilova ochiq turganda ishlaydi.</div></section>
   <section class="card"><h2>Mavzu</h2><div class="seg2 s3" id="th"><button data-v="auto">Avto</button><button data-v="light">Yorug‘</button><button data-v="dark">Qorong‘i</button></div></section>
 </div>
-<p class="foot" style="text-align:center">Ta’lim uchun, moliyaviy maslahat emas. Bozor NY vaqti bilan juma 17:00 da yopilib, yakshanba 17:00 da ochiladi.<br><span id="cr">© 2026 Barcha huquqlar himoyalangan.</span> · <span id="ver">Versiya: v27</span></p>
+<p class="foot" style="text-align:center">Ta’lim uchun, moliyaviy maslahat emas. Bozor NY vaqti bilan juma 17:00 da yopilib, yakshanba 17:00 da ochiladi.<br><span id="cr">© 2026 Barcha huquqlar himoyalangan.</span> · <span id="ver">Versiya: v29</span></p>
 </main>
 
 <nav id="nav" aria-label="Bo‘limlar">
@@ -146,6 +148,22 @@
 <div class="sheet hide" id="sheet"><div class="bdp" id="sbd"></div><div class="sp"><div class="grab"></div><h2>Vaqt zonasi</h2><div id="slist"></div>
   <div class="zc"><b>Boshqa UTC</b><div id="shcu"></div></div></div></div>
 <button class="fab hide" id="fab" aria-label="Yangi savdo"><svg class="ic"><use href="#i-plus"/></svg><span>Savdo</span></button>
+<input type="file" id="imf" accept=".pdf,.txt" class="hide">
+<div class="sheet hide" id="im"><div class="bdp" id="ibd"></div><div class="sp tall"><div class="grab"></div>
+  <div class="thd"><div><h2 style="margin:0">MT5 import</h2><div class="foot" id="isub"></div></div><button class="x" id="iclose" aria-label="Yopish"><svg class="ic"><use href="#i-x"/></svg></button></div>
+  <div id="isum"></div>
+  <label>Server vaqti (UTC±, Exness odatda 0)<input id="iuo" type="number" step="0.5" value="0" inputmode="decimal"></label>
+  <div class="ilist" id="ilist"></div>
+  <button class="pri wide bbtn" id="iadd"><svg class="ic"><use href="#i-check"/></svg><span id="iaddl">Qo‘shish</span></button>
+</div></div>
+<div class="sheet hide" id="jm"><div class="bdp" id="jbd"></div><div class="sp"><div class="grab"></div>
+  <div class="thd"><h2 style="margin:0" id="jt">Yangi jurnal</h2><button class="x" id="jclose" aria-label="Yopish"><svg class="ic"><use href="#i-x"/></svg></button></div>
+  <label>Nomi<input id="jn" maxlength="30" placeholder="Masalan: Prop 5k"></label>
+  <span class="lbl">Valyuta</span><div class="seg2" id="jcs"><button data-v="USD" class="on">USD</button><button data-v="USC">USC (sent)</button></div>
+  <div class="g2" style="margin-top:12px"><label>Boshlang‘ich balans<input id="jb0" type="number" inputmode="decimal" step="0.01" placeholder="5000"></label><label>Risk (%)<input id="jrk" type="number" inputmode="decimal" step="0.1" placeholder="2.5"></label></div>
+  <div id="jal"><span class="lbl">Holati</span><div class="seg2" id="jas"><button data-v="0" class="on">Faol</button><button data-v="1">Yopilgan</button></div><div class="foot" style="margin:6px 0 12px">Yopilgan jurnal faqat ko‘rish uchun: savdo qo‘shib, tahrirlab yoki o‘chirib bo‘lmaydi.</div></div>
+  <button class="pri wide bbtn" id="jsave"><svg class="ic"><use href="#i-check"/></svg>Saqlash</button>
+</div></div>
 <div class="sheet hide" id="tm"><div class="bdp" id="tbd"></div><div class="sp tall"><div class="grab"></div>
   <div class="thd"><div><h2 style="margin:0" id="ttl">Yangi savdo</h2><div class="foot" id="tdt"></div></div><button class="x" id="tclose" aria-label="Yopish"><svg class="ic"><use href="#i-x"/></svg></button></div>
   <div class="tpsl" id="out"><button data-v="w" class="on">Foyda (TP)</button><button data-v="l">Zarar (SL)</button></div>
@@ -168,6 +186,6 @@
   <button class="pri wide bbtn" id="nadd"><svg class="ic"><use href="#i-check"/></svg> Qo‘shish</button>
 </div></div>
 <div class="toast hide" id="toast"></div>
-<script src="app.js?v=27"></script>
+<script src="app.js?v=29"></script>
 </body>
 </html>
