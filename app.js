@@ -1,6 +1,6 @@
 "use strict";
 /* Ilova versiyasi: sw.js (VER) va index.html (?v=) bilan BIR XIL bo‘lishi shart */
-const APP_VER="v30";
+const APP_VER="v32";
 if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}
 const NY="America/New_York",$=id=>document.getElementById(id),pad=n=>String(n).padStart(2,"0");
 const ld=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
@@ -214,7 +214,8 @@ function calHTML(days){const d=D(anc),y=d.getUTCFullYear(),m=d.getUTCMonth(),W7=
    h+='<button class="mini" data-m="'+mm+'"><b>'+MS[mm]+'</b><div class="mg">'+cs.join("")+'</div><span class="'+cl(tot)+'">'+(cnt?fv(tot,1):"—")+"</span></button>"}return h+"</div>"}
  const mo={};Object.keys(days).forEach(k=>{const q=k.slice(0,7),o=mo[q]=mo[q]||{s:0,n:0};o.s+=days[k].s;o.n+=days[k].n});const ks=Object.keys(mo).sort().reverse(),mx=Math.max(1e-9,...ks.map(q=>Math.abs(mo[q].s)));
  return ks.length?ks.map(q=>'<div class="ab"><span>'+MN[+q.slice(5)-1].slice(0,3)+" "+q.slice(0,4)+'</span><div class="abb"><i class="'+(mo[q].s>=0?"g":"r")+'" style="width:'+Math.max(4,Math.abs(mo[q].s)/mx*100)+'%"></i></div><b class="'+cl(mo[q].s)+'">'+fv(mo[q].s,1)+"</b></div>").join(""):'<div class="mute">Hali savdo yo‘q.</div>'}
-const grp=(T,f)=>{const o=Object.create(null);T.forEach(t=>f(t).forEach(k=>{const x=o[k]=o[k]||{n:0,w:0,dd:0,r:0},c=oc(t);x.n++;if(c==="w")x.w++;if(c!=="d")x.dd++;x.r+=val(t)}));return o};
+const grp=(T,f)=>{const o=Object.create(null);T.forEach(t=>f(t).forEach(k=>{const x=o[k]=o[k]||{n:0,w:0,l:0,dd:0,r:0,gw:0,gl:0},c=oc(t),v=val(t);x.n++;if(c==="w"){x.w++;x.gw+=v}if(c==="l"){x.l++;x.gl-=v}if(c!=="d")x.dd++;x.r+=v}));return o};
+const rrOf=x=>x.w&&x.l&&x.gl>0?(x.gw/x.w)/(x.gl/x.l):null,rrT=x=>{const v=rrOf(x);return v?"RR 1 : "+v.toFixed(2):"RR —"};
 function streak(T){const s=T.slice().sort((a,b)=>tms(a)-tms(b));let bw=0,bl=0,cw=0,cL=0,cur=0,ty="";s.forEach(t=>{const c=oc(t);if(c==="w"){cw++;cL=0;bw=Math.max(bw,cw)}else if(c==="l"){cL++;cw=0;bl=Math.max(bl,cL)}});
  for(let i=s.length-1;i>=0;i--){const c=oc(s[i]);if(c==="d")continue;if(!ty)ty=c;if(c===ty)cur++;else break}return{cur,ty,bw,bl}}
 function ring(w,l){const n=w+l,C=2*Math.PI*42,g=w&&l?5:0;let h='<svg viewBox="0 0 110 110" class="donut"><circle cx="55" cy="55" r="42" fill="none" stroke="var(--line)" stroke-width="11"/>';
@@ -318,7 +319,7 @@ $("add").onclick=()=>{const rv=Math.abs(parseFloat($("res").value)),uv=Math.abs(
  renderJr();toast(was?"Yangilandi":"Saqlandi")};
 $("tdel").onclick=()=>{const tr=editT;if(!tr)return;askDel("Savdoni o‘chirish","Bu amalni qaytarib bo‘lmaydi",()=>{const q=trades.indexOf(tr);if(q>=0){trades.splice(q,1);sv("tr",trades)}closeForm();renderJr();toast("O‘chirildi")})};
 /* ---- statistika ---- */
-const SPO=[[7,"Oxirgi 7 kun"],[30,"Oxirgi 30 kun"],[90,"Oxirgi 90 kun"],[365,"Oxirgi 1 yil"],[0,"Hammasi"]],CMO=[["d","Kunlik","Oxirgi 30 sessiya (hafta oxiri savdo bo‘lsa ham)"],["w","Haftalik","Oxirgi 12 hafta"],["m","Oylik","Oxirgi 12 oy"],["a","Hammasi","Barcha savdolar"]],ANO=[["kz","Sessiya (kill zone)","Qaysi sessiyada natija yaxshi"],["dw","Hafta kuni","Qaysi kun samarali"],["hr","Soat (New York)","Qaysi soatda yaxshi savdo qilasiz"],["mi","Xatolar","Takrorlanadigan xatolar va ularning narxi"]],MTO=[["r","R (risk birligi)"],["u","$ (dollar)"]];
+const SPO=[[7,"Oxirgi 7 kun"],[30,"Oxirgi 30 kun"],[90,"Oxirgi 90 kun"],[365,"Oxirgi 1 yil"],[0,"Hammasi"]],CMO=[["d","Kunlik","Oxirgi 30 sessiya (hafta oxiri savdo bo‘lsa ham)"],["w","Haftalik","Oxirgi 12 hafta"],["m","Oylik","Oxirgi 12 oy"],["a","Hammasi","Barcha savdolar"]],ANO=[["kz","Kill zone","Kill zone ichida va tashqarida natija, RR"],["ss","Bozor sessiyasi","Sydney, Tokio, London, New York bo‘yicha natija va RR"],["dw","Hafta kuni","Qaysi kun samarali"],["hr","Soat (New York)","Qaysi soatda yaxshi savdo qilasiz"],["mi","Xatolar","Takrorlanadigan xatolar va ularning narxi"]],MTO=[["r","R (risk birligi)"],["u","$ (dollar)"]];
 $("fp1").onclick=()=>openPick("Davr",SPO,sp,v=>{sp=+v;sv("sp",sp);renderStats()});
 $("fp2").onclick=()=>openPick("Birlik",MTO,mt,v=>{mt=v;sv("mt",mt);renderJr()});
 $("fp3").onclick=()=>openPick("Grafik davri",CMO,cm,v=>{cm=v;sv("cm",cm);renderStats()});
@@ -351,7 +352,7 @@ function drawPnl(){const{L,sub}=series(),el=$("pnl"),n=L.length,last=n?L[n-1].v:
  const H2=72,mn=Math.min(...dd),Y2=v=>6+(v/(mn*1.15))*(H2-14),d2=dd.map((v,i)=>(i?"L":"M")+X(i).toFixed(1)+" "+Y2(v).toFixed(1)).join(" ");
  $("ddc").innerHTML=mdd<0?'<svg viewBox="0 0 '+W+" "+H2+'" width="'+W+'" height="'+H2+'"><path d="'+d2+" L"+X(n-1).toFixed(1)+" 6 L"+X(0).toFixed(1)+' 6Z" style="fill:#dc2626;fill-opacity:.28"/><path d="'+d2+'" fill="none" style="stroke:#dc2626" stroke-width="1.8" stroke-linejoin="round"/><line x1="'+Lm+'" x2="'+(W-Rm)+'" y1="6" y2="6" style="stroke:var(--mute)"/><text x="'+(Lm-6)+'" y="10" text-anchor="end" class="ax">0</text><text x="'+(Lm-6)+'" y="'+(Y2(mn)+3).toFixed(1)+'" text-anchor="end" class="ax">'+f(+mn.toFixed(2))+"</text></svg>":'<div class="mute">Bu davrda drawdown bo‘lmagan.</div>'}
 function bars(o,sort,lab){const ks=Object.keys(o);if(!ks.length)return'<div class="mute">Ma’lumot yo‘q</div>';ks.sort(sort||((a,b)=>o[b].r-o[a].r));const mx=Math.max(1e-9,...ks.map(k=>Math.abs(o[k].r)));
- return ks.map(k=>{const x=o[k];return'<div class="br"><div class="bh"><b>'+esc(lab?lab(k):k)+"</b><span>"+x.n+" savdo · win rate "+(x.dd?Math.round(x.w/x.dd*100)+"%":"—")+(x.n<5?'<i class="few">kam</i>':"")+'</span><em class="'+cl(x.r)+'">'+fv(x.r,1)+'</em></div><div class="bt"><i class="'+(x.r>=0?"g":"r")+'" style="width:'+Math.max(3,Math.abs(x.r)/mx*100)+'%"></i></div></div>'}).join("")}
+ return ks.map(k=>{const x=o[k];return'<div class="br"><div class="bh"><b>'+esc(lab?lab(k):k)+"</b><span>"+x.n+" savdo · win rate "+(x.dd?Math.round(x.w/x.dd*100)+"%":"—")+(rrOf(x)?" · "+rrT(x):"")+(x.n<5?'<i class="few">kam</i>':"")+'</span><em class="'+cl(x.r)+'">'+fv(x.r,1)+'</em></div><div class="bt"><i class="'+(x.r>=0?"g":"r")+'" style="width:'+Math.max(3,Math.abs(x.r)/mx*100)+'%"></i></div></div>'}).join("")}
 const bestLine=(o,lab)=>{const k=Object.keys(o).filter(k=>o[k].n>=3).sort((a,b)=>o[b].r-o[a].r)[0];return k&&o[k].r>0?'<div class="foot" style="margin-top:8px">Eng yaxshi: <b>'+esc(lab?lab(k):k)+"</b> · "+fv(o[k].r,1)+"</div>":""};
 /* Win rate bloki — endi Statistika bo‘limida (tanlangan davr bo‘yicha) */
 function renderWin(){const nw=Date.now(),W0={d:1,w:7,m:30}[wc],T=trades.filter(t=>wc==="a"||tms(t)>=nw-W0*864e5);
@@ -360,7 +361,11 @@ function renderWin(){const nw=Date.now(),W0={d:1,w:7,m:30}[wc],T=trades.filter(t
  const vs=T.filter(t=>oc(t)==="w").map(val),vl=T.filter(t=>oc(t)==="l").map(val),gw=vs.reduce((a,v)=>a+v,0),gl=-vl.reduce((a,v)=>a+v,0),aw=w?gw/w:0,al=l?gl/l:0,pf=gl?gw/gl:(gw>0?Infinity:0),rr=al?aw/al:(aw>0?Infinity:0),ex=(w+l)?(gw-gl)/(w+l):0,pc=v=>(w+l)?" <small>"+Math.round(v/(w+l)*100)+"%</small>":"",inf=v=>v===Infinity?"∞":v.toFixed(2);
  $("dn").innerHTML=ring(w,l);
  $("leg").innerHTML='<div class="lg"><i style="background:#16a34a"></i>'+TP+"<b>"+w+pc(w)+'</b></div><div class="lg"><i style="background:#dc2626"></i>'+SL+"<b>"+l+pc(l)+"</b></div>";
- $("kpi").innerHTML='<div><b class="'+(pf>=1?"pos":(w+l)?"neg":"")+'">'+((w+l)?inf(pf):"—")+'</b>Profit Factor</div><div><b>'+((w+l)?inf(rr):"—")+'</b>Foyda/Zarar nisbati</div><div><b class="'+cl(ex)+'">'+((w+l)?fv(ex,1):"—")+'</b>Kutilgan natija</div><div><b class="pos">'+(w?fv(aw):"—")+'</b>O‘rt. foyda</div><div><b class="neg">'+(l?fv(-al):"—")+'</b>O‘rt. zarar</div><div><b>'+n+'</b>Savdolar</div>';
+ $("kpi").innerHTML='<div><b class="'+(pf>=1?"pos":(w+l)?"neg":"")+'">'+((w+l)?inf(pf):"—")+'</b>Profit Factor</div><div><b>'+((w+l)?inf(rr):"—")+'</b>O‘rtacha RR (foyda ÷ zarar)</div><div><b class="'+cl(ex)+'">'+((w+l)?fv(ex,1):"—")+'</b>Kutilgan natija</div><div><b class="pos">'+(w?fv(aw):"—")+'</b>O‘rt. foyda</div><div><b class="neg">'+(l?fv(-al):"—")+'</b>O‘rt. zarar</div><div><b>'+n+'</b>Savdolar</div>';
+ {const k=w+l,wr=k?w/k*100:0,rv=Number.isFinite(rr)&&rr>0,be=rv?100/(1+rr):null;let t="";
+  if(k&&w&&l&&rv){const good=ex>0;t="O‘rtacha RR <b>1 : "+rr.toFixed(2)+"</b> · zararsizlik uchun kerakli win rate <b>"+be.toFixed(0)+"%</b>, sizniki <b>"+wr.toFixed(0)+"%</b>.<br>Xulosa: <b class=\""+(good?"ok":"bad")+"\">"+(good?"foydadasiz":ex<0?"zarardasiz":"nolda")+"</b>, har savdodan o‘rtacha <b class=\""+(good?"ok":"bad")+"\">"+fv(ex,1)+"</b>."+(k<30?"<small>Savdolar kam ("+k+" ta): xulosa taxminiy, ishonchli natija uchun kamida 30 ta savdo kerak.</small>":"")}
+  else if(k&&!l)t="Zarar bilan yopilgan savdo yo‘q, RR hisoblab bo‘lmaydi.";else if(k&&!w)t="Foyda bilan yopilgan savdo yo‘q, natija zararda.";
+  $("wvd").innerHTML=t}
  $("wsp").innerHTML=spark();
  if(!n){const L=trades.map(tms).filter(Number.isFinite).sort((a,b)=>b-a)[0],k=L?dk(L):"";$("leg").innerHTML+='<div class="foot" style="margin-top:8px">Bu davrda savdo yo‘q'+(k?" · oxirgi savdo: "+k.slice(8)+"."+k.slice(5,7)+"."+k.slice(0,4):"")+"</div>"}
 }
@@ -370,7 +375,12 @@ function renderStats(){
  $("swarn").innerHTML=n<20?'<div class="warn"><b>Ma’lumot kam:</b> tahlil davrida '+n+' ta savdo bor. Ishonchli xulosa uchun kamida 20–30 ta kerak.</div>':"";
  renderWin();
  let h="";
- if(an==="kz"){const g=grp(T,t=>[t.kz||"—"]);h=bars(g,null,kzs)+bestLine(g,kzs)}
+ const inKZ=t=>!!t.kz&&t.kz!=="—"&&!/tashqarida/i.test(t.kz),
+ cmpKZ=()=>{const f=(a,nm)=>{const g=grp(a,()=>["x"]).x||{n:0,w:0,l:0,dd:0,r:0,gw:0,gl:0},k=g.w+g.l;return'<div><b>'+rrT(g)+"</b>"+nm+" · "+g.n+" savdo"+(k?" · win rate "+Math.round(g.w/k*100)+"%":"")+(k?" · har savdo "+(Math.abs(g.r/Math.max(1,g.dd))<.05?"≈ 0":fv(g.r/Math.max(1,g.dd),1)):"")+"</div>"};return'<div class="cmp">'+f(T.filter(inKZ),"Kill zone ichida")+f(T.filter(t=>!inKZ(t)),"Kill zone tashqarida")+"</div>"},
+ bestRR=(g,lab)=>{const k=Object.keys(g).filter(k=>g[k].n>=5&&rrOf(g[k])).sort((a,b)=>rrOf(g[b])-rrOf(g[a]))[0];return k?'<div class="foot" style="margin-top:8px">Eng yuqori RR: <b>'+esc(lab?lab(k):k)+"</b> · "+rrT(g[k])+" ("+g[k].n+" savdo)</div>":""};
+ if(an==="kz"){const g=grp(T,t=>[t.kz||"—"]);h=cmpKZ()+bars(g,null,kzs)+bestRR(g,kzs)+bestLine(g,kzs)}
+ else if(an==="ss"){const g=grp(T,t=>{const ts=tms(t);if(!Number.isFinite(ts))return[];const d=new Date(ts),r=SS.filter(x=>act(x,mins(d,x.tz))).map(x=>x.n);return r.length?r:["Sessiyadan tashqari"]});
+  h=cmpKZ()+bars(g,(a,b)=>(rrOf(g[b])||0)-(rrOf(g[a])||0))+bestRR(g)+'<div class="foot" style="margin-top:8px">Sessiyalar bir-biriga tushishi mumkin (masalan London va New York), shuning uchun bitta savdo bir necha sessiyada hisoblanadi.</div>'}
  else if(an==="dw"){const g=grp(T,t=>[DNs[D(dk(tms(t))).getUTCDay()]]);h=bars(g,(a,b)=>DW.indexOf(a)-DW.indexOf(b))+bestLine(g)}
  else if(an==="hr"){
  const g=grp(T,t=>{
