@@ -1,6 +1,6 @@
 "use strict";
 /* Ilova versiyasi: sw.js (VER) va index.html (?v=) bilan BIR XIL bo‘lishi shart */
-const APP_VER="v34";
+const APP_VER="v35";
 if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}
 const NY="America/New_York",$=id=>document.getElementById(id),pad=n=>String(n).padStart(2,"0");
 const ld=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
@@ -69,10 +69,10 @@ document.addEventListener("click",e=>{
 document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>{
  document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("a",x===b));
  ["home","jr","stats","tools","set"].forEach(id=>$(id).classList.toggle("hide",id!==b.dataset.t));
- if(b.dataset.t==="jr")renderJr();if(b.dataset.t==="stats")renderStats();if(b.dataset.t==="tools"){renderCal();renderBaza()}$("fab").classList.toggle("hide",b.dataset.t!=="jr");window.scrollTo(0,0)});
+ if(b.dataset.t==="jr")renderJr();if(b.dataset.t==="stats")renderStats();if(b.dataset.t==="tools"){renderCal();renderBaza();wSync()}$("fab").classList.toggle("hide",b.dataset.t!=="jr");window.scrollTo(0,0)});
 document.querySelectorAll("#sub3 button").forEach(b=>b.onclick=()=>{
  document.querySelectorAll("#sub3 button").forEach(x=>x.classList.toggle("on",x===b));
- ["cal","risk","bk"].forEach(p=>$("p-"+p).classList.toggle("hide",p!==b.dataset.p));if(b.dataset.p==="bk")renderBaza();if(b.dataset.p==="cal")renderCal()});
+ ["cal","risk","bk"].forEach(p=>$("p-"+p).classList.toggle("hide",p!==b.dataset.p));if(b.dataset.p==="bk")renderBaza();if(b.dataset.p==="cal")renderCal();if(b.dataset.p==="risk")wSync()});
 
 /* ---- vaqt chizig'i ---- */
 let h12=ld("h12",false),RI=[],VF=null;
@@ -328,9 +328,8 @@ $("add").onclick=()=>{const be=outc==="d",pv=x=>{const n=parseFloat(x);return be
  renderJr();toast((was?"Yangilandi":"Saqlandi")+(ad?" · "+ad:""))};
 $("tdel").onclick=()=>{const tr=editT;if(!tr)return;askDel("Savdoni o‘chirish","Bu amalni qaytarib bo‘lmaydi",()=>{const q=trades.indexOf(tr);if(q>=0){trades.splice(q,1);sv("tr",trades)}closeForm();renderJr();toast("O‘chirildi")})};
 /* ---- statistika ---- */
-const SPO=[[7,"Oxirgi 7 kun"],[30,"Oxirgi 30 kun"],[90,"Oxirgi 90 kun"],[365,"Oxirgi 1 yil"],[0,"Hammasi"]],CMO=[["d","Kunlik","Oxirgi 30 sessiya (hafta oxiri savdo bo‘lsa ham)"],["w","Haftalik","Oxirgi 12 hafta"],["m","Oylik","Oxirgi 12 oy"],["a","Hammasi","Barcha savdolar"]],ANO=[["kz","Kill zone","Kill zone ichida va tashqarida natija, RR"],["ss","Bozor sessiyasi","Sydney, Tokio, London, New York bo‘yicha natija va RR"],["dw","Hafta kuni","Qaysi kun samarali"],["hr","Soat (New York)","Qaysi soatda yaxshi savdo qilasiz"],["mi","Xatolar","Takrorlanadigan xatolar va ularning narxi"]],MTO=[["r","R (risk birligi)"],["u","$ (dollar)"]];
+const SPO=[[7,"Oxirgi 7 kun"],[30,"Oxirgi 30 kun"],[90,"Oxirgi 90 kun"],[365,"Oxirgi 1 yil"],[0,"Hammasi"]],CMO=[["d","Kunlik","Oxirgi 30 sessiya (hafta oxiri savdo bo‘lsa ham)"],["w","Haftalik","Oxirgi 12 hafta"],["m","Oylik","Oxirgi 12 oy"],["a","Hammasi","Barcha savdolar"]],ANO=[["kz","Kill zone","Kill zone ichida va tashqarida natija, RR"],["ss","Bozor sessiyasi","Sydney, Tokio, London, New York bo‘yicha natija va RR"],["dw","Hafta kuni","Qaysi kun samarali"],["hr","Soat (New York)","Qaysi soatda yaxshi savdo qilasiz"],["mi","Xatolar","Takrorlanadigan xatolar va ularning narxi"]];
 $("fp1").onclick=()=>openPick("Davr",SPO,sp,v=>{sp=+v;sv("sp",sp);renderStats()});
-$("fp2").onclick=()=>openPick("Birlik",MTO,mt,v=>{mt=v;sv("mt",mt);renderJr()});
 $("fp3").onclick=()=>openPick("Grafik davri",CMO,cm,v=>{cm=v;sv("cm",cm);renderStats()});
 $("fp4").onclick=()=>openPick("Tahlil turi",ANO,an,v=>{an=v;sv("an",an);renderStats()});
 function series(){const days=mapDays(),tk=todayK(),L=[];let c=0;
@@ -379,7 +378,7 @@ function renderWin(){const nw=Date.now(),W0={d:1,w:7,m:30}[wc],T=trades.filter(t
  if(!n){const L=trades.map(tms).filter(Number.isFinite).sort((a,b)=>b-a)[0],k=L?dk(L):"";$("leg").innerHTML+='<div class="foot" style="margin-top:8px">Bu davrda savdo yo‘q'+(k?" · oxirgi savdo: "+k.slice(8)+"."+k.slice(5,7)+"."+k.slice(0,4):"")+"</div>"}
 }
 function renderStats(){
- $("fv1").textContent=SPO.find(o=>o[0]===sp)[1];$("fv2").textContent=mt==="u"?"$ (dollar)":"R (risk)";$("fv3").textContent=CMO.find(o=>o[0]===cm)[1];$("fv4").textContent=ANO.find(o=>o[0]===an)[1];
+ $("fv1").textContent=SPO.find(o=>o[0]===sp)[1];$("fv3").textContent=CMO.find(o=>o[0]===cm)[1];$("fv4").textContent=ANO.find(o=>o[0]===an)[1];
  const T=trades.filter(t=>!sp||tms(t)>Date.now()-sp*864e5),n=T.length,DW=["Dushanba","Seshanba","Chorshanba","Payshanba","Juma","Shanba","Yakshanba"];
  $("swarn").innerHTML=n<20?'<div class="warn"><b>Ma’lumot kam:</b> tahlil davrida '+n+' ta savdo bor. Ishonchli xulosa uchun kamida 20–30 ta kerak.</div>':"";
  renderWin();
@@ -410,22 +409,17 @@ const PT=[["usd","Forex","EURUSD, GBPUSD, AUDUSD, NZDUSD · $10 / pip",10],["xau
 let ptk="usd",RLtxt="";
 const m$ = v => "$" + v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 function calc(){const b=+$("bal").value,r=+$("rk").value,sl=+$("sl").value,p=+$("pv").value;sv("calc",[b,r,sl,p,ptk]);
- document.querySelectorAll("#rkc .ch").forEach(c=>c.classList.toggle("on",+c.dataset.r===r));
- document.querySelectorAll("#slc .ch").forEach(c=>c.classList.toggle("on",+c.dataset.s===sl));
- document.querySelectorAll("#balc .ch").forEach(c=>c.classList.toggle("on",+c.dataset.b===b));
+ document.querySelectorAll("#p-risk .ch").forEach(c=>c.classList.toggle("on",+c.dataset.x===+$(c.dataset.t).value));
  document.querySelectorAll("#rpts button").forEach(c=>c.classList.toggle("on",c.dataset.v===ptk));
- $("rhint").textContent=PT.find(x=>x[0]===ptk)[2];
- if(r>0)$("rkr").value=Math.min(5,Math.max(.25,r));
- $("rkv").textContent=(b>0&&r>0)?"= "+m$(b*r/100):"";
+ $("rhint").textContent=PT.find(x=>x[0]===ptk)[2]+". Qiymatni brokeringizdan tekshiring.";wSync();
  const H=$("rhero"),P=$("rplan");RLtxt="";
  if(!(b>0&&r>0&&sl>0&&p>0)){H.className="card rh";H.innerHTML='<div class="empty" style="margin:0;border:0;padding:6px"><span class="ib">'+IC("calc")+"</span><b>Natija shu yerda chiqadi</b><small>Balans, risk, stop-loss va pip qiymatini kiriting</small></div>";P.classList.add("hide");return}
  const risk=b*r/100,raw=risk/(sl*p),lot=Math.floor(raw*100+1e-9)/100,lv=r<=1?[1,"Konservativ"]:r<=2?[2,"O‘rtacha"]:r<=3?[3,"Yuqori"]:[4,"Xavfli"];
  if(lot<0.01){H.className="card rh lv4";H.innerHTML='<span class="lbl">Tavsiya etilgan lot</span><div class="lotv">&lt;0.01<small> lot</small></div><div class="warn" style="margin:10px 0 0">Hisoblangan lot ('+raw.toFixed(3)+") brokerning eng kichik lotidan (0.01) kam. Riskni oshiring yoki stop-loss ni kamaytiring.</div>";P.classList.add("hide");return}
  const real=lot*sl*p,rp=real/b*100;
  H.className="card rh lv"+lv[0];
- H.innerHTML='<div class="rh1"><span class="lbl" style="margin:0">Tavsiya etilgan lot</span><span class="lvl">'+lv[1]+' risk</span></div><div class="lotv">'+lot.toFixed(2)+"<small> lot</small></div>"
-  +'<div class="gauge" aria-hidden="true"><i style="width:'+Math.min(100,rp/5*100).toFixed(0)+'%"></i></div>'
-  +'<div class="foot" style="margin-top:8px">Aniq hisob: '+raw.toFixed(3)+" · broker qadami 0.01 ga pastga yaxlitlandi</div>"
+ H.innerHTML='<div class="rh1"><span class="lbl" style="margin:0">Tavsiya etilgan lot</span><span class="rhr"><span class="lvl">'+lv[1]+' risk</span><button class="ibtn" id="rcopy" aria-label="Nusxalash">'+IC("copy")+"</button></span></div>"
+  +'<div class="lotv">'+lot.toFixed(2)+"<small> lot · aniq "+raw.toFixed(3)+"</small></div>"
   +'<div class="rrow"><div><b>'+m$(real)+"</b>Real risk</div><div><b>"+rp.toFixed(2)+"%</b>Balansdan</div><div><b>"+m$(lot*p)+"</b>1 pip qiymati</div></div>"
   +(r>3?'<div class="warn" style="margin:0"><b>Xavfli risk:</b> bitta savdoda hisobning '+r+"% xavf ostida. Odatda 0.5–2% tavsiya etiladi.</div>":"");
  P.classList.remove("hide");
@@ -434,22 +428,37 @@ function calc(){const b=+$("bal").value,r=+$("rk").value,sl=+$("sl").value,p=+$(
   +'<div class="rtr"><span>SL</span><span class="mu">'+sl+' pips</span><b class="neg">−'+m$(real)+"</b></div>"
   +[1,2,3,4].map(k=>'<div class="rtr"><span>1 : '+k+'</span><span class="mu">'+sl*k+" pips</span><b>+"+m$(real*k)+"</b></div>").join("")+"</div>";
  RLtxt="Lot: "+lot.toFixed(2)+" | Risk: "+m$(real)+" ("+rp.toFixed(2)+"%) | SL: "+sl+" pips | 1 pip: "+m$(p)+"/lot"}
-$("rkc").innerHTML=[0.5,1,2,3].map(x=>'<button class="ch" data-r="'+x+'">'+x+"%</button>").join("");
-$("slc").innerHTML=[5,10,15,20,30,50].map(x=>'<button class="ch" data-s="'+x+'">'+x+" pips</button>").join("");
-$("balc").innerHTML=[500,1000,5000,10000,25000].map(x=>'<button class="ch" data-b="'+x+'">$'+x.toLocaleString("en-US")+"</button>").join("");
-$("p-risk").onclick=e=>{let b;
- if(b=e.target.closest(".sstp")){$("sl").value=Math.max(1,(+$("sl").value||0)+ +b.dataset.d);calc();return}
- if(b=e.target.closest("[data-r]")){$("rk").value=b.dataset.r;calc();return}
- if(b=e.target.closest("[data-s]")){$("sl").value=b.dataset.s;calc();return}
- if(b=e.target.closest("[data-b]")){$("bal").value=b.dataset.b;calc();return}
- if(b=e.target.closest("#rpts [data-v]")){ptk=b.dataset.v;const x=PT.find(y=>y[0]===ptk);if(x[3]!==null)$("pv").value=x[3];calc()}};
-$("rkr").oninput=()=>{$("rk").value=$("rkr").value;calc()};
+/* ---- raqam g‘ildiragi: CSS scroll-snap + qisqa JS ---- */
+const WH=36,WN=(a,b,s)=>{const o=[];for(let v=a;v<=b+1e-9;v+=s)o.push(Math.round(v*100)/100);return o},
+WV={bal:[50,100,150,200,250,300,400,500,600,700,800,900,1e3,1250,1500,1750,2e3,2500,3e3,3500,4e3,4500,5e3,6e3,7e3,8e3,9e3,1e4,12500,15e3,17500,2e4,25e3,3e4,35e3,4e4,5e4,6e4,75e3,1e5,125e3,15e4,2e5,25e4,3e5,4e5,5e5,75e4,1e6],
+ rk:[...WN(.05,2,.05),2.25,2.5,2.75,3,3.5,4,4.5,5,6,7,8,9,10],sl:[...WN(1,100,1),...WN(110,200,10),250,300,400,500],pv:[...WN(.1,.9,.1),...WN(1,20,.5),25,30,40,50,75,100]},
+WC={bal:[1e3,5e3,1e4,25e3],rk:[.5,1,2,3],sl:[5,10,20,50],pv:[1,5,10,20]},
+wf=(k,v)=>k==="bal"?(v>=1e6?v/1e6+"M":v>=1e3?+(v/1e3).toFixed(2)+"K":String(v)):String(v),W={};
+function rin(id){if(id==="pv"){const x=PT.find(y=>y[0]===ptk);if(x[3]===null||+$("pv").value!==x[3])ptk="man"}calc()}
+function wInit(k){const box=$("w-"+k),vals=WV[k],L=document.createElement("div");L.className="wl";L.tabIndex=0;L.setAttribute("role","listbox");L.setAttribute("aria-label",box.dataset.l);
+ vals.forEach(v=>{const d=document.createElement("div");d.textContent=wf(k,v);L.appendChild(d)});box.appendChild(L);
+ const it=L.children;let U=false,dn=false,tm=0,cur=-1,raf=0;
+ const arm=()=>{clearTimeout(tm);tm=setTimeout(()=>{if(!dn)U=false},250)},
+  mark=i=>{if(i===cur)return;if(it[cur])it[cur].classList.remove("on");cur=i;if(it[i])it[i].classList.add("on")},
+  fire=()=>{raf=0;const i=Math.min(vals.length-1,Math.max(0,Math.round(L.scrollTop/WH))),v=vals[i];mark(i);box.classList.add("ex");if(+$(k).value!==v){$(k).value=v;rin(k)}};
+ ["touchstart","mousedown"].forEach(e=>L.addEventListener(e,()=>{dn=true;U=true;clearTimeout(tm)},{passive:true}));
+ ["touchend","touchcancel","mouseup","mouseleave"].forEach(e=>L.addEventListener(e,()=>{dn=false;arm()},{passive:true}));
+ L.addEventListener("wheel",()=>{U=true;arm()},{passive:true});L.addEventListener("keydown",()=>{U=true;arm()});
+ L.addEventListener("scroll",()=>{if(!U)return;if(!dn)arm();if(!raf){raf=1;requestAnimationFrame(fire)}},{passive:true});
+ W[k]={box,L,vals,mark,busy:()=>U}}
+function wSync(){for(const k in W){const w=W[k];if(w.busy())continue;const v=+$(k).value;if(!(v>0)){w.box.classList.remove("ex");continue}
+ let i=w.vals.indexOf(v);const ex=i>=0;if(!ex){let d=1/0;i=0;w.vals.forEach((x,j)=>{const e=Math.abs(x-v);if(e<d){d=e;i=j}})}
+ w.box.classList.toggle("ex",ex);w.mark(i);const y=i*WH;if(Math.abs(w.L.scrollTop-y)>1)w.L.scrollTop=y}}
+Object.keys(WV).forEach(k=>{wInit(k);$(k+"c").innerHTML=WC[k].map(x=>'<button class="ch" data-t="'+k+'" data-x="'+x+'">'+wf(k,x)+(k==="rk"?"%":"")+"</button>").join("")});
+$("p-risk").onclick=e=>{const b=e.target.closest("button");if(!b)return;
+ if(b.dataset.t){$(b.dataset.t).value=b.dataset.x;rin(b.dataset.t);return}
+ if(b.id==="rcopy"){if(!RLtxt){toast("Avval hisoblang");return}copyText(RLtxt).then(ok=>toast(ok?"Nusxalandi":"Nusxalab bo‘lmadi"));return}
+ if(b.id==="rreset"){$("bal").value="";$("rk").value=1;$("sl").value="";$("pv").value=10;ptk="usd";calc();return}
+ if(b.closest("#rpts")&&b.dataset.v){ptk=b.dataset.v;const x=PT.find(y=>y[0]===ptk);if(x[3]!==null)$("pv").value=x[3];calc()}};
 ["bal","rk","sl","pv"].forEach(id=>$(id).addEventListener("focus",e=>{try{e.target.select()}catch(_){}}));
 async function copyText(t){try{if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(t);return true}}catch(e){}
  try{const x=document.createElement("textarea");x.value=t;x.setAttribute("readonly","");x.style.cssText="position:fixed;top:0;left:0;opacity:0";document.body.appendChild(x);x.select();x.setSelectionRange(0,t.length);const ok=document.execCommand("copy");document.body.removeChild(x);return !!ok}catch(e){return false}}
-$("rcopy").onclick=()=>{if(!RLtxt){toast("Avval hisoblang");return}copyText(RLtxt).then(ok=>toast(ok?"Nusxalandi":"Nusxalab bo‘lmadi"))};
-$("rreset").onclick=()=>{$("bal").value="";$("rk").value=1;$("sl").value="";$("pv").value=10;ptk="usd";calc()};
-{const c=ld("calc",[1000,1,10,10,"usd"]);ptk=c[4]||"usd";["bal","rk","sl","pv"].forEach((id,i)=>{$(id).value=c[i]||"";$(id).oninput=()=>{if(id==="pv"){const x=PT.find(y=>y[0]===ptk);if(x[3]===null||+$("pv").value!==x[3])ptk="man"}calc()}});calc()}
+{const c=ld("calc",[1000,1,10,10,"usd"]);ptk=c[4]||"usd";["bal","rk","sl","pv"].forEach((id,i)=>{$(id).value=c[i]||"";$(id).oninput=()=>rin(id)});calc()}
 $("exp").onclick=()=>{const s=JSON.stringify({kz:KZ,ss:SS.map(y=>[y.s,y.e]),tr:trades,nw:mine,mi:MI});$("bk").value=s;copyText(s).then(ok=>{$("bkm").textContent=ok?"Nusxalandi. Telegram “Saved messages” ga joylab qo‘ying.":"Avtomatik nusxalanmadi. Matnni qo‘lda belgilab nusxalang.";if(!ok){try{$("bk").select()}catch(e){}}toast(ok?"Nusxalandi":"Nusxalab bo‘lmadi")})};
 /* ---- GitHub baza ---- */
 function applyData(o){{const z=normKZ(o.kz);if(z){KZ=z;sv("kz",KZ)}}if(Array.isArray(o.ss))o.ss.forEach((v,i)=>{if(SS[i]&&okSS(v)){SS[i].s=v[0];SS[i].e=v[1]}});sv("ss",SS.map(y=>[y.s,y.e]));

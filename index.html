@@ -9,7 +9,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=34">
+<link rel="stylesheet" href="style.css?v=35">
 <title>Forex Kill Zone</title>
 </head>
 <body>
@@ -63,14 +63,12 @@
 
 <div id="stats" class="pg hide">
   <div class="foot" id="sjn" style="margin:0 2px 8px"></div>
-  <div class="fr"><button class="fp" id="fp1"><span><small>Davr</small><b id="fv1"></b></span><svg class="ic s"><use href="#i-chev"/></svg></button><button class="fp" id="fp2"><span><small>Birlik</small><b id="fv2"></b></span><svg class="ic s"><use href="#i-chev"/></svg></button></div>
-  <div id="swarn"></div>
   <section class="card"><div class="ch2"><h2>Win rate <small id="wrp"></small></h2><button class="fp sm" id="fp5"><b id="fv5"></b><svg class="ic s"><use href="#i-chev"/></svg></button></div><div class="wr"><div id="dn"></div><div id="leg"></div></div><div class="kpis" id="kpi"></div><div class="vd" id="wvd"></div><div class="spk" id="wsp"></div></section>
   <section class="card"><div class="ch2"><h2>P&amp;L va Drawdown</h2><button class="fp sm" id="fp3"><b id="fv3"></b><svg class="ic s"><use href="#i-chev"/></svg></button></div>
     <div class="pbar"><div><span class="lbl" style="margin:0">Jami P&amp;L (davr)</span><div class="big" id="pbig"></div></div><div class="foot"><span id="pmdd"></span><br><span id="psub"></span></div></div>
     <div class="pw"><div class="ptip hide" id="ptip"></div><div id="pnl"></div></div>
     <span class="lbl" style="margin:10px 0 2px">Drawdown (cho‘qqidan pasayish)</span><div id="ddc"></div></section>
-  <section class="card"><div class="ch2"><h2>Tahlil</h2><button class="fp sm" id="fp4"><b id="fv4"></b><svg class="ic s"><use href="#i-chev"/></svg></button></div><div id="an"></div></section>
+  <section class="card"><h2>Tahlil</h2><div class="fr"><button class="fp" id="fp1"><span><small>Davr</small><b id="fv1"></b></span><svg class="ic s"><use href="#i-chev"/></svg></button><button class="fp" id="fp4"><span><small>Tur</small><b id="fv4"></b></span><svg class="ic s"><use href="#i-chev"/></svg></button></div><div id="swarn"></div><div id="an"></div></section>
 </div>
 
 <div id="tools" class="pg hide">
@@ -86,22 +84,15 @@
   </div>
   <div id="p-risk" class="hide">
     <section class="card rh" id="rhero"></section>
-    <section class="card rp"><h2><span class="ib"><svg class="ic"><use href="#i-calc"/></svg></span>Parametrlar</h2>
-      <span class="lbl">Instrument</span>
-      <div class="seg2 s3" id="rpts"><button data-v="usd">Forex</button><button data-v="xau">Oltin</button><button data-v="man">Qo‘lda</button></div>
-      <div class="foot rhint" id="rhint"></div>
-      <label class="rgap">Balans<div class="pre bigp"><span>$</span><input id="bal" type="number" inputmode="decimal" placeholder="1000"></div></label>
-      <div class="chs" id="balc"></div>
-      <div class="rlh"><span class="lbl">Risk (balansdan)</span><b class="rbig" id="rkv"></b></div>
-      <div class="rrng"><input type="range" id="rkr" class="rng" min="0.25" max="5" step="0.25" value="1" aria-label="Risk foizi"><div class="pre"><input id="rk" type="number" step="0.1" inputmode="decimal" placeholder="1"><span class="sfx">%</span></div></div>
-      <div class="chs" id="rkc"></div>
-      <span class="lbl">Stop-loss</span>
-      <div class="step"><button class="sq sstp" data-d="-1" aria-label="Kamaytirish">−</button><div class="pre grow"><input id="sl" type="number" inputmode="decimal" placeholder="10"><span class="sfx">pips</span></div><button class="sq sstp" data-d="1" aria-label="Oshirish">+</button></div>
-      <div class="chs" id="slc" style="margin-top:10px"></div>
-      <label>1 pip qiymati, 1 lotda<div class="pre"><span>$</span><input id="pv" type="number" inputmode="decimal" placeholder="10"></div></label>
-      <div class="foot">Pip qiymati broker va juftlikka qarab farq qiladi, aniq qiymatni brokeringizdan tekshiring.</div></section>
+    <section class="card rp"><div class="rph"><h2>Parametrlar</h2><div class="seg2 s3 sm" id="rpts"><button data-v="usd">Forex</button><button data-v="xau">Oltin</button><button data-v="man">Qo‘lda</button></div><button class="ibtn" id="rreset" aria-label="Tozalash"><svg class="ic"><use href="#i-restore"/></svg></button></div>
+      <div class="rg">
+        <div class="rc"><div class="rcl">Balans <i>$</i></div><div class="rcb"><div class="whl" id="w-bal" data-l="Balans"></div><div class="rcr"><input id="bal" type="number" inputmode="decimal" placeholder="1000" aria-label="Balans"><div class="rcc" id="balc"></div></div></div></div>
+        <div class="rc"><div class="rcl">Risk <i>%</i></div><div class="rcb"><div class="whl" id="w-rk" data-l="Risk"></div><div class="rcr"><input id="rk" type="number" step="0.05" inputmode="decimal" placeholder="1" aria-label="Risk"><div class="rcc" id="rkc"></div></div></div></div>
+        <div class="rc"><div class="rcl">Stop-loss <i>pips</i></div><div class="rcb"><div class="whl" id="w-sl" data-l="Stop-loss"></div><div class="rcr"><input id="sl" type="number" inputmode="decimal" placeholder="10" aria-label="Stop-loss"><div class="rcc" id="slc"></div></div></div></div>
+        <div class="rc"><div class="rcl">1 pip / 1 lot <i>$</i></div><div class="rcb"><div class="whl" id="w-pv" data-l="1 pip / 1 lot"></div><div class="rcr"><input id="pv" type="number" inputmode="decimal" placeholder="10" aria-label="1 pip / 1 lot"><div class="rcc" id="pvc"></div></div></div></div>
+      </div>
+      <div class="foot rhint" id="rhint"></div></section>
     <section class="card hide" id="rplan"></section>
-    <div class="g2"><button id="rcopy"><svg class="ic"><use href="#i-copy"/></svg><span>Nusxalash</span></button><button id="rreset"><svg class="ic"><use href="#i-restore"/></svg><span>Tozalash</span></button></div>
   </div>
   <div id="p-bk" class="hide">
     <section class="card"><div class="ghh"><span class="ib"><svg class="ic"><use href="#i-db"/></svg></span><div><b id="ghs">Ulanmagan</b><small id="ghr2"></small></div><span class="gbadge" id="gbd"></span></div><div class="gstats" id="gsx"></div>
@@ -135,7 +126,7 @@
     <div class="foot">Faqat ilova ochiq turganda ishlaydi.</div></section>
   <section class="card"><h2>Mavzu</h2><div class="seg2 s3" id="th"><button data-v="auto">Avto</button><button data-v="light">Yorug‘</button><button data-v="dark">Qorong‘i</button></div></section>
 </div>
-<p class="foot" style="text-align:center">Ta’lim uchun, moliyaviy maslahat emas. Bozor NY vaqti bilan juma 17:00 da yopilib, yakshanba 17:00 da ochiladi.<br><span id="cr">© 2026 Barcha huquqlar himoyalangan.</span> · <span id="ver">Versiya: v34</span></p>
+<p class="foot" style="text-align:center">Bozor NY vaqti bilan juma 17:00 da yopilib, yakshanba 17:00 da ochiladi.<br><span id="cr">© 2026 Barcha huquqlar himoyalangan.</span> · <span id="ver">Versiya: v35</span></p>
 </main>
 
 <nav id="nav" aria-label="Bo‘limlar">
@@ -187,6 +178,6 @@
   <button class="pri wide bbtn" id="nadd"><svg class="ic"><use href="#i-check"/></svg> Qo‘shish</button>
 </div></div>
 <div class="toast hide" id="toast"></div>
-<script src="app.js?v=34"></script>
+<script src="app.js?v=35"></script>
 </body>
 </html>
