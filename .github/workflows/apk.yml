@@ -1,0 +1,48 @@
+name: APK
+on:
+  workflow_dispatch:
+  push:
+    branches: [apk]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Web fayllarni tayyorlash
+        run: |
+          mkdir -p www
+          cp index.html app.js sw.js style.css manifest.json icon-192.png icon-512.png www/
+          printf '%s\n' '{ "appId": "com.mrgaffarov.killzone", "appName": "Forex Kill Zone", "webDir": "www" }' > capacitor.config.json
+          npm init -y
+          npm i --no-audit --no-fund @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
+          npx cap add android
+          npx cap sync android
+      - name: Ikona va splash
+        continue-on-error: true
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq imagemagick
+          mkdir -p resources
+          convert icon-512.png -resize 1024x1024 resources/icon.png
+          convert -size 2732x2732 xc:'#0b1220' \( icon-512.png -resize 900x900 \) -gravity center -composite resources/splash.png
+          npm i --no-audit --no-fund @capacitor/assets
+          npx capacitor-assets generate --android
+      - name: APK yig'ish
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+      - name: APK faylini yuklash
+        uses: actions/upload-artifact@v4
+        with:
+          name: forex-kill-zone-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          
