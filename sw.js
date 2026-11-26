@@ -2,7 +2,7 @@
 /* Forex Kill Zone — service worker.
    Yangi versiya chiqarganda 3 joyda BIR XIL raqam qo‘ying:
    1) shu fayldagi VER   2) app.js dagi APP_VER   3) index.html dagi style.css?v= va app.js?v= */
-const VER = "v3.6.1";
+const VER = "v3.6.2";
 const SHELL = "kz-shell-" + VER;   // index.html, css, js, manifest, ikonka
 const RUNTIME = "kz-fonts";        // Google Fonts (versiyaga bog‘liq emas)
 const CORE = ["manifest.json", "icon-192.png", "icon-512.png"];
@@ -47,25 +47,36 @@ self.addEventListener("fetch", e => {
 // Sahifa: avval tarmoq (yangi versiya). Tarmoq NAV_TMO ichida javob bermasa yoki uzilsa, keshdagi index.html beriladi.
 // Kesh yo‘q (birinchi ochilish) bo‘lsa, tarmoqni kutadi. Kechikkan so‘rov orqada tugaydi va keshni yangilaydi.
 const NAV_TMO = 3000;
-async function page(e, req) {
-  const c = await caches.open(SHELL);
-  let saved;
-  const net = fetch(req).then(r => { if (r.ok) saved = c.put("index.html", r.clone()); return r; });
+function page(e, req) {
+  // MUHIM: waitUntil faqat await’dan oldin (sinxron) chaqirilishi kerak.
+  let saved = Promise.resolve();
+  const net = fetch(req).then(r => {
+    if (r.ok) saved = caches.open(SHELL).then(c => c.put("index.html", r.clone())).catch(() => {});
+    return r;
+  });
   e.waitUntil(net.then(() => saved).catch(() => {}));
-  const cached = await c.match("index.html", { ignoreSearch: true });
-  if (!cached) return net.catch(() => Response.error());
-  const slow = new Promise(ok => setTimeout(() => ok(cached), NAV_TMO));
-  return Promise.race([net.catch(() => cached), slow]);
+  return (async () => {
+    const c = await caches.open(SHELL);
+    const cached = await c.match("index.html", { ignoreSearch: true });
+    if (!cached) return net.catch(() => Response.error());
+    const slow = new Promise(ok => setTimeout(() => ok(cached), NAV_TMO));
+    return Promise.race([net.catch(() => cached), slow]);
+  })();
 }
 
 // Fayllar: keshdan darhol, orqada yangilab qo‘yadi
-async function swr(e, req, name) {
-  const c = await caches.open(name);
-  const hit = await c.match(req);
+function swr(e, req, name) {
+  // MUHIM: waitUntil sinxron chaqiriladi (await’dan keyin emas).
+  let saved = Promise.resolve();
   const net = fetch(req).then(r => {
-    if (r && (r.ok || r.type === "opaque")) c.put(req, r.clone());
+    if (r && (r.ok || r.type === "opaque")) saved = caches.open(name).then(c => c.put(req, r.clone())).catch(() => {});
     return r;
   }).catch(() => null);
-  if (hit) { e.waitUntil(net); return hit; }
-  return (await net) || Response.error();
+  e.waitUntil(net.then(() => saved).catch(() => {}));
+  return (async () => {
+    const c = await caches.open(name);
+    const hit = await c.match(req);
+    if (hit) return hit;
+    return (await net) || Response.error();
+  })();
 }

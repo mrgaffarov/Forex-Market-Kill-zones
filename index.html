@@ -9,7 +9,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=3.6.1">
+<link rel="stylesheet" href="style.css?v=3.6.2">
 <title>Forex Kill Zone</title>
 </head>
 <body>
@@ -102,9 +102,10 @@
     <section class="card"><h2>Fayllar</h2><div id="gfl"></div><div class="foot" style="margin-top:8px">Saqlashda faqat “O‘zgargan” va “Yangi” fayllar yoziladi.</div></section>
     <details class="card" id="gcon"><summary><svg class="ic"><use href="#i-gear"/></svg><span>Ulanish sozlamalari</span></summary>
       <div class="g2" style="margin-top:12px"><label>Egasi<input id="gho"></label><label>Omborxona<input id="ghr"></label></div>
-      <label>Token<input id="ght" type="password" autocomplete="off" placeholder="github_pat_..."></label>
+      <label>Token<input id="ght" type="password" autocomplete="off" placeholder="github_pat_... (saqlangach maydon bo‘shaladi)"></label>
       <label class="inl"><input type="checkbox" id="ghshow">Tokenni ko‘rsatish</label>
-      <div class="foot">Omborxona Private bo‘lsin. Token faqat shu omborxona va “Contents: Read and write” huquqi bilan yaratiladi.</div></details>
+      <button class="wide" id="ghclear" style="margin:4px 0 0">Tokenni o‘chirish</button>
+      <div class="foot">Omborxona Private bo‘lsin. Token faqat shu omborxona va “Contents: Read and write” huquqi bilan yaratiladi. Token telefonda saqlanadi, shuning uchun uni hech kimga yubormang.</div></details>
     <details class="card"><summary><svg class="ic"><use href="#i-restore"/></svg><span>Qo‘shimcha</span></summary>
       <textarea id="bk" style="margin-top:12px" placeholder="Qo‘lda zaxira matni shu yerda chiqadi. Tiklash uchun matnni shu yerga joylang."></textarea>
       <div class="g2" style="margin-top:10px"><button id="exp"><svg class="ic"><use href="#i-copy"/></svg><span>Nusxalash</span></button><button id="imp"><svg class="ic"><use href="#i-restore"/></svg><span>Tiklash</span></button></div>
@@ -125,8 +126,16 @@
     <label>Kill zone oldidan ogohlantirish<select id="pre"><option value="0">Yo‘q</option><option value="5">5 daqiqa</option><option value="10">10 daqiqa</option><option value="15">15 daqiqa</option></select></label>
     <div class="foot">Faqat ilova ochiq turganda ishlaydi.</div></section>
   <section class="card"><h2>Mavzu</h2><div class="seg2 s3" id="th"><button data-v="auto">Avto</button><button data-v="light">Yorug‘</button><button data-v="dark">Qorong‘i</button></div></section>
+  <section class="card"><h2><svg class="ic"><use href="#i-db"/></svg>Ma’lumotlar (tekshirish)</h2>
+    <div class="foot" id="lsm" style="margin:0 0 10px"></div>
+    <div class="g2"><button id="lsview"><svg class="ic"><use href="#i-db"/></svg><span>Ko‘rish</span></button><button id="lsdl"><svg class="ic"><use href="#i-copy"/></svg><span>Faylga saqlash</span></button></div>
+    <div class="g2" style="margin-top:8px"><button id="lscopy"><svg class="ic"><use href="#i-copy"/></svg><span>Nusxalash</span></button><button id="lsref"><svg class="ic"><use href="#i-restore"/></svg><span>Yangilash</span></button></div>
+    <textarea id="lsta" readonly style="height:180px;margin-top:10px" placeholder="“Ko‘rish” tugmasini bosing. Bu yerda telefon xotirasidagi (localStorage) hamma ma’lumot chiqadi."></textarea>
+    <div class="foot" id="lsmsg"></div>
+    <div class="foot">Token xavfsizlik uchun yashiriladi. “Faylga saqlash” — to‘liq zaxira fayli (.json). Uni Google Drive yoki Telegram “Saved messages” ga saqlab qo‘ying.</div>
+  </section>
 </div>
-<p class="foot" style="text-align:center">Bozor NY vaqti bilan juma 17:00 da yopilib, yakshanba 17:00 da ochiladi.<br><span id="cr">© 2026 Barcha huquqlar himoyalangan.</span> · <span id="ver">Versiya: v3.6.1</span></p>
+<p class="foot" style="text-align:center">Bozor NY vaqti bilan juma 17:00 da yopilib, yakshanba 17:00 da ochiladi.<br><span id="cr">© 2026 Barcha huquqlar himoyalangan.</span> · <span id="ver">Versiya: v3.6.2</span></p>
 </main>
 
 <nav id="nav" aria-label="Bo‘limlar">
@@ -152,7 +161,8 @@
   <div class="thd"><h2 style="margin:0" id="jt">Yangi jurnal</h2><button class="x" id="jclose" aria-label="Yopish"><svg class="ic"><use href="#i-x"/></svg></button></div>
   <label>Nomi<input id="jn" maxlength="30" placeholder="Masalan: Prop 5k"></label>
   <span class="lbl">Valyuta</span><div class="seg2" id="jcs"><button data-v="USD" class="on">USD</button><button data-v="USC">USC (sent)</button></div>
-  <div class="g2" style="margin-top:12px"><label>Boshlang‘ich balans<input id="jb0" type="number" inputmode="decimal" step="0.01" placeholder="5000"></label><label>Risk (%)<input id="jrk" type="number" inputmode="decimal" step="0.1" placeholder="2.5"></label></div>
+  <div class="g2" style="margin-top:12px"><label>Boshlang‘ich balans ($)<input id="jb0" type="number" inputmode="decimal" step="0.01" placeholder="5000"></label><label>Risk (%)<input id="jrk" type="number" inputmode="decimal" step="0.1" placeholder="2.5"></label></div>
+  <div class="foot" id="jb0h" style="margin:-4px 0 10px"></div>
   <div id="jal"><span class="lbl">Holati</span><div class="seg2" id="jas"><button data-v="0" class="on">Faol</button><button data-v="1">Yopilgan</button></div><div class="foot" style="margin:6px 0 12px">Yopilgan jurnal faqat ko‘rish uchun: savdo qo‘shib, tahrirlab yoki o‘chirib bo‘lmaydi.</div></div>
   <button class="pri wide bbtn" id="jsave"><svg class="ic"><use href="#i-check"/></svg>Saqlash</button>
 </div></div>
@@ -160,6 +170,7 @@
   <div class="thd"><div><h2 style="margin:0" id="ttl">Yangi savdo</h2><div class="foot" id="tdt"></div></div><button class="x" id="tclose" aria-label="Yopish"><svg class="ic"><use href="#i-x"/></svg></button></div>
   <div class="tpsl" id="out"><button data-v="w" class="on">Foyda (TP)</button><button data-v="l">Zarar (SL)</button><button data-v="d">Breakeven</button></div>
   <div class="g2"><label>P&amp;L ($)<div class="pre"><span>$</span><input id="usd" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0.00"></div></label><label>R (ixtiyoriy)<input id="res" type="number" step="0.1" min="0" inputmode="decimal" placeholder="0.0"></label></div>
+  <div class="foot" id="uhint" style="margin:-4px 0 8px"></div>
   <div class="g2"><label>Sana (NY kuni)<input id="td" type="date"></label><label>Vaqt (NY)<input id="tt" type="time"></label></div>
   <div class="g2"><label>Juftlik<input id="pair" value="EURUSD" autocapitalize="characters"></label><div><span class="lbl">Yo‘nalish</span><div class="seg2" id="side"><button data-v="Buy" class="on">Buy</button><button data-v="Sell">Sell</button></div></div></div>
   <button class="fld" id="fmb"><span><small>Xatolar</small><b id="fml">Xato yo‘q</b></span><svg class="ic s"><use href="#i-chev"/></svg></button>
@@ -178,6 +189,6 @@
   <button class="pri wide bbtn" id="nadd"><svg class="ic"><use href="#i-check"/></svg> Qo‘shish</button>
 </div></div>
 <div class="toast hide" id="toast"></div>
-<script src="app.js?v=3.6.1"></script>
+<script src="app.js?v=3.6.2"></script>
 </body>
 </html>

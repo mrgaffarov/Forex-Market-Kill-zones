@@ -1,14 +1,23 @@
 "use strict";
 /* Ilova versiyasi: sw.js (VER) va index.html (?v=) bilan BIR XIL bo‘lishi shart */
-const APP_VER="v3.6.1";
+const APP_VER="v3.6.2";
 if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}
 const NY="America/New_York",$=id=>document.getElementById(id),pad=n=>String(n).padStart(2,"0");
 const ld=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
 const JD0={id:"main",n:"Exness cent",cur:"USC",b0:114,rk:2.5,arc:false};
 let JL=ld("jl",[JD0]),jid=ld("jid","main");if(!Array.isArray(JL)||!JL.some(x=>x&&x.id==="main"))JL=[JD0].concat(Array.isArray(JL)?JL.filter(x=>x&&x.id!=="main"):[]);if(!JL.some(x=>x.id===jid))jid="main";
 const curJ=()=>JL.find(x=>x.id===jid)||JL[0],TRK=()=>jid==="main"?"tr":"tr_"+jid,JB=()=>jid==="main"?"data/":"data/jurnallar/"+jid+"/";
+/* Ichki hisob-kitob har doim jurnal valyutasida (USC = sent). Foydalanuvchi esa $ da ko‘radi va kiritadi. */
+const jKey=id=>id==="main"?"tr":"tr_"+id,jBase=id=>id==="main"?"data/":"data/jurnallar/"+id+"/";
+const isUSC=()=>curJ().cur==="USC";
+const toUsd=v=>{const n=+v||0;return isUSC()?n/100:n};
+const fromUsd=v=>{const n=+v||0;return isUSC()?Math.round(n*100):Math.round(n*100)/100};
 const SYNCK=new Set(["jl","tr","nw","kz","ss","mi","mt","wk","sp","an","cm","th","h12","snd","pre","tz","cu"]);
-const sv=(k,v)=>{try{localStorage.setItem(k==="tr"?TRK():k,JSON.stringify(v))}catch(e){}if(SYNCK.has(k))dirty()};
+const sv=(k,v)=>{try{localStorage.setItem(k==="tr"?TRK():k,JSON.stringify(v))}catch(e){}if(k==="tr")markPJ(jid);if(SYNCK.has(k))dirty()};
+/* Qaysi jurnallarda GitHub’ga yuborilmagan o‘zgarish bor (qurilma yopilsa ham eslab qoladi) */
+let PJ=new Set((ld("pj",[])||[]).filter(x=>typeof x==="string"));
+const markPJ=id=>{if(!PJ.has(id)){PJ.add(id);try{localStorage.setItem("pj",JSON.stringify([...PJ]))}catch(e){}}};
+const clearPJ=id=>{if(PJ.delete(id)){try{localStorage.setItem("pj",JSON.stringify([...PJ]))}catch(e){}}};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const IC=n=>'<svg class="ic"><use href="#i-'+n+'"/></svg>';
 function toast(m){const t=$("toast");t.textContent=m;t.classList.remove("hide");clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.add("hide"),1800)}
@@ -69,7 +78,7 @@ document.addEventListener("click",e=>{
 document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>{
  document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("a",x===b));
  ["home","jr","stats","tools","set"].forEach(id=>$(id).classList.toggle("hide",id!==b.dataset.t));
- if(b.dataset.t==="jr")renderJr();if(b.dataset.t==="stats")renderStats();if(b.dataset.t==="tools"){renderCal();renderBaza();wSync()}$("fab").classList.toggle("hide",b.dataset.t!=="jr");window.scrollTo(0,0)});
+ if(b.dataset.t==="jr")renderJr();if(b.dataset.t==="stats")renderStats();if(b.dataset.t==="tools"){renderCal();renderBaza();wSync()}if(b.dataset.t==="set")lsRefresh();$("fab").classList.toggle("hide",b.dataset.t!=="jr");window.scrollTo(0,0)});
 document.querySelectorAll("#sub3 button").forEach(b=>b.onclick=()=>{
  document.querySelectorAll("#sub3 button").forEach(x=>x.classList.toggle("on",x===b));
  ["cal","risk","bk"].forEach(p=>$("p-"+p).classList.toggle("hide",p!==b.dataset.p));if(b.dataset.p==="bk")renderBaza();if(b.dataset.p==="cal")renderCal();if(b.dataset.p==="risk")wSync()});
@@ -196,7 +205,7 @@ const tms=t=>{
 
 const val=t=>mt==="u"?(+t.u||0):(+t.r||0);
 const oc=t=>t.out==="d"||((+t.r||0)===0&&(+t.u||0)===0)?"d":t.out==="w"||t.out==="l"?t.out:((t.r>0||t.u>0)?"w":(t.r<0||t.u<0)?"l":"d");
-const fv=(v,sg)=>{const a=Math.abs(v),x=mt==="u"?"$"+a.toFixed(2):a.toFixed(1)+"R";return(v<0?"−":sg&&v>0?"+":"")+x};
+const fv=(v,sg)=>{const a=Math.abs(v),x=mt==="u"?"$"+toUsd(a).toFixed(2):a.toFixed(1)+"R";return(v<0?"−":sg&&v>0?"+":"")+x};
 const cl=v=>v>0?"pos":v<0?"neg":"";
 const MN=["Yanvar","Fevral","Mart","Aprel","May","Iyun","Iyul","Avgust","Sentyabr","Oktyabr","Noyabr","Dekabr"],MS=["yan","fev","mar","apr","may","iyn","iyl","avg","sen","okt","noy","dek"],WD=["Du","Se","Ch","Pa","Ju","Sh","Ya"];
 const nowT=()=>{const w=new Date(wall(Date.now(),NY));return pad(w.getUTCHours())+":"+pad(w.getUTCMinutes())};
@@ -283,7 +292,7 @@ $("emi").onclick=e=>{const b=e.target.closest(".cx");if(b){const it=MI[+b.datase
 $("ami").onclick=()=>{const v=$("nmi").value.trim();if(v&&!MI.includes(v)){MI.push(v);sv("mi",MI);$("nmi").value="";chips()}};
 let editT=null,editSnap="",editWhen="",editR="",editU="";
 const nyHM=ts=>{const w=new Date(wall(ts,NY));return pad(w.getUTCHours())+":"+pad(w.getUTCMinutes())};
-/* 1R qiymati = (boshlang‘ich balans + shu vaqtgacha yopilgan savdolar $) x risk%; MT5 importdagi qoida bilan bir xil */
+/* 1R qiymati = (boshlang‘ich balans + shu vaqtgacha yopilgan savdolar) x risk%. Qiymat jurnal valyutasida (USC = sent). */
 const riskAmt=(ts,skip)=>{const J=curJ();let b=J.b0;trades.forEach(x=>{if(x!==skip&&x.u!==undefined&&x.u!==null&&Number.isFinite(+x.u)&&tms(x)<ts)b+=+x.u});if(!(b>0))b=J.b0;return b*J.rk/100};
 function setOut(v){outc=v;document.querySelectorAll("#out button").forEach(x=>x.classList.toggle("on",x.dataset.v===v))}
 function setSide(v){side=v;document.querySelectorAll("#side button").forEach(x=>x.classList.toggle("on",x.dataset.v===v))}
@@ -291,16 +300,17 @@ const formSnap=()=>JSON.stringify([outc,$("usd").value.trim(),$("res").value.tri
 function clearForm(){["res","usd","note"].forEach(id=>$(id).value="");fmi=new Set();chips();setOut("w");setSide("Buy");$("pair").value="EURUSD"}
 function formHead(k,edit){const d=D(k);$("ttl").textContent=edit?"Savdoni tahrirlash":"Yangi savdo";$("addl").textContent=edit?"O‘zgarishlarni saqlash":"Savdoni saqlash";$("tdel").classList.toggle("hide",!edit);
  $("tdt").textContent=d.getUTCDate()+"-"+MS[d.getUTCMonth()]+" "+d.getUTCFullYear()+", "+DNs[d.getUTCDay()]+" · NY vaqti";$("tm").classList.remove("hide")}
+function uHint(){const J=curJ(),el=$("uhint");if(!el)return;el.textContent=J.cur==="USC"?"Bu jurnal sent (USC) hisobida. P&L ni $ da kiriting — ilova o‘zi sentga o‘giradi (masalan $1.14 = 114 sent).":"P&L dollar ($) da kiritiladi."}
 function openForm(k){if(curJ().arc){toast("Jurnal yopilgan, faqat ko‘rish");return}if(editT){editT=null;clearForm()}
- $("td").value=k;$("tt").value=nowT();formHead(k,false)}
+ $("td").value=k;$("tt").value=nowT();formHead(k,false);uHint()}
 function openEdit(t){if(curJ().arc){toast("Jurnal yopilgan, faqat ko‘rish");return}const ts=tms(t);if(!Number.isFinite(ts)){toast("Savdo vaqti noto‘g‘ri");return}
  editT=t;const oo=oc(t),ab=v=>oo==="d"?v:Math.abs(v);setOut(oo);setSide(t.s==="Sell"?"Sell":"Buy");
  const rr=+t.r||0,uu=(t.u===undefined||t.u===null)?NaN:+t.u;
- $("res").value=rr?String(ab(rr)):"";$("usd").value=Number.isFinite(uu)?String(ab(uu)):"";
+ $("res").value=rr?String(ab(rr)):"";$("usd").value=Number.isFinite(uu)?String(toUsd(ab(uu))):"";
  $("pair").value=(t.p&&t.p!=="—")?t.p:"";$("note").value=t.nt||"";
  fmi=new Set(t.mi||[]);chips();
  $("td").value=dk(ts);$("tt").value=nyHM(ts);
- editR=$("res").value.trim();editU=$("usd").value.trim();editWhen=$("td").value+"|"+$("tt").value;editSnap=formSnap();formHead($("td").value,true)}
+ editR=$("res").value.trim();editU=$("usd").value.trim();editWhen=$("td").value+"|"+$("tt").value;editSnap=formSnap();formHead($("td").value,true);uHint()}
 function closeForm(){$("tm").classList.add("hide");if(editT){editT=null;clearForm()}}
 $("fab").onclick=()=>openForm(selDay||todayK());
 $("tbd").onclick=$("tclose").onclick=closeForm;
@@ -314,10 +324,10 @@ $("add").onclick=()=>{const be=outc==="d",pv=x=>{const n=parseFloat(x);return be
  const td=$("td").value,tt=$("tt").value,ts=toUTC(tt>="17:00"?addD(td,-1):td,tt,NY),dd=new Date(ts),i=nyInfo(dd),nm=mins(dd,NY),k=mkt(i.dow,nm).open?KZ.find(x=>act(x,nm)):null,sg=outc==="l"?-1:1;
  let R=be?(rv||0):(rv>0?rv:0),U=be?(uv||0):(uv>0?uv:0),ad="";
  if(!be){const cR=!editT||$("res").value.trim()!==editR,cU=!editT||$("usd").value.trim()!==editU,mode=!(uv>0)?"u":!(rv>0)?"r":(cR&&!cU)?"u":(cU&&!cR)?"r":"";
-  if(mode){const rb=riskAmt(editT&&td+"|"+tt===editWhen?tms(editT):ts,editT);
+  if(mode){const rb=toUsd(riskAmt(editT&&td+"|"+tt===editWhen?tms(editT):ts,editT));
    if(!(rb>0)){toast("Jurnal balansi 0: P&L ($) va R ni ikkalasini kiriting");return}
    if(mode==="u"){U=+(R*rb).toFixed(2);ad="$ ≈ "+U}else{R=+(U/rb).toFixed(2);ad="R ≈ "+R}}}
- const f={p:$("pair").value.trim().toUpperCase()||"—",s:side,out:outc,r:sg*R,u:sg*U,nt:$("note").value.trim(),mi:[...fmi]};
+ const f={p:$("pair").value.trim().toUpperCase()||"—",s:side,out:outc,r:sg*R,u:fromUsd(sg*U),nt:$("note").value.trim(),mi:[...fmi]};
  let t;
  if(editT){t=editT;Object.assign(t,f);if(f.u===undefined)delete t.u;
   if(td+"|"+tt!==editWhen){t.ts=ts;t.kz=k?k.n:"Kill zone tashqarida";t.d=i.date+" "+hm(nm)+" NY";selDay=dk(ts);anc=selDay}}
@@ -458,14 +468,27 @@ $("p-risk").onclick=e=>{const b=e.target.closest("button");if(!b)return;
 async function copyText(t){try{if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(t);return true}}catch(e){}
  try{const x=document.createElement("textarea");x.value=t;x.setAttribute("readonly","");x.style.cssText="position:fixed;top:0;left:0;opacity:0";document.body.appendChild(x);x.select();x.setSelectionRange(0,t.length);const ok=document.execCommand("copy");document.body.removeChild(x);return !!ok}catch(e){return false}}
 {const c=ld("calc",[1000,1,10,10,"usd"]);ptk=c[4]||"usd";["bal","rk","sl","pv"].forEach((id,i)=>{$(id).value=c[i]||"";$(id).oninput=()=>rin(id)});calc()}
-$("exp").onclick=()=>{const s=JSON.stringify({kz:KZ,ss:SS.map(y=>[y.s,y.e]),tr:trades,nw:mine,mi:MI});$("bk").value=s;copyText(s).then(ok=>{$("bkm").textContent=ok?"Nusxalandi. Telegram “Saved messages” ga joylab qo‘ying.":"Avtomatik nusxalanmadi. Matnni qo‘lda belgilab nusxalang.";if(!ok){try{$("bk").select()}catch(e){}}toast(ok?"Nusxalandi":"Nusxalab bo‘lmadi")})};
+const backupObj=()=>({v:2,app:APP_VER,at:new Date().toISOString(),jid,jl:JL,kz:KZ,ss:SS.map(y=>[y.s,y.e]),tr:trades,nw:mine,mi:MI,jurnallar:JL.map(J=>Object.assign({},J,{savdolar:J.id===jid?trades:normTrades(ld(jKey(J.id),[]))})),sozlamalar:{birlik:mt,hafta_oxiri:wk,davr:sp,tahlil:an,grafik:cm,mavzu:th,soat12:h12,tovush:snd,ogohlantirish:pre,zona:tz,utc:cu}});
+$("exp").onclick=()=>{const s=JSON.stringify(backupObj());$("bk").value=s;copyText(s).then(ok=>{$("bkm").textContent=ok?"Nusxalandi. Telegram “Saved messages” ga joylab qo‘ying.":"Avtomatik nusxalanmadi. Matnni qo‘lda belgilab nusxalang.";if(!ok){try{$("bk").select()}catch(e){}}toast(ok?"Nusxalandi":"Nusxalab bo‘lmadi")})};
 /* ---- GitHub baza ---- */
-function applyData(o){{const z=normKZ(o.kz);if(z){KZ=z;sv("kz",KZ)}}if(Array.isArray(o.ss))o.ss.forEach((v,i)=>{if(SS[i]&&okSS(v)){SS[i].s=v[0];SS[i].e=v[1]}});sv("ss",SS.map(y=>[y.s,y.e]));
- if(Array.isArray(o.tr)){trades=normTrades(o.tr);dropN=o.tr.length-trades.length;sv("tr",trades)}if(Array.isArray(o.mi)){MI=o.mi.map(String);sv("mi",MI)}if(Array.isArray(o.nw)){mine=normEvents(o.nw);fixIds();sv("nw",mine)}chips();eKZ();eSS();buildTL();renderJr();renderCal();tick()}
+const normJ=x=>({id:String(x&&x.id||"").replace(/[^\w-]/g,""),n:String(x&&x.n||"Jurnal").slice(0,30),cur:x&&x.cur==="USC"?"USC":"USD",b0:+(x&&x.b0)||0,rk:+(x&&x.rk)||2.5,arc:!!(x&&x.arc)});
+function applyData(o){
+ const src=Array.isArray(o.jurnallar)?o.jurnallar:Array.isArray(o.jl)?o.jl:null,hasTr=Array.isArray(o.jurnallar)&&o.jurnallar.some(x=>Array.isArray(x.savdolar));
+ if(src&&src.length){const L=src.map(normJ).filter(x=>x.id);
+  if(L.length){
+   if(Array.isArray(o.jurnallar))o.jurnallar.forEach(x=>{const J=normJ(x);if(J.id&&Array.isArray(x.savdolar)){try{localStorage.setItem(jKey(J.id),JSON.stringify(normTrades(x.savdolar)))}catch(e){}markPJ(J.id)}});
+   if(!L.some(x=>x.id==="main"))L.unshift(JD0);
+   JL=L;sv("jl",JL);
+   if(o.jid&&JL.some(x=>x.id===o.jid))jid=o.jid;else if(!JL.some(x=>x.id===jid))jid="main";
+   sv("jid",jid);trades=normTrades(ld(TRK(),[]));jUpd()}}
+ {const z=normKZ(o.kz);if(z){KZ=z;sv("kz",KZ)}}if(Array.isArray(o.ss))o.ss.forEach((v,i)=>{if(SS[i]&&okSS(v)){SS[i].s=v[0];SS[i].e=v[1]}});sv("ss",SS.map(y=>[y.s,y.e]));
+ if(Array.isArray(o.tr)&&!hasTr){trades=normTrades(o.tr);dropN=o.tr.length-trades.length;sv("tr",trades)}if(Array.isArray(o.mi)){MI=o.mi.map(String);sv("mi",MI)}if(Array.isArray(o.nw)){mine=normEvents(o.nw);fixIds();sv("nw",mine)}
+ if(o.sozlamalar&&typeof o.sozlamalar==="object")applySets({afzalliklar:o.sozlamalar});else if(o.afzalliklar&&typeof o.afzalliklar==="object")applySets({afzalliklar:o.afzalliklar});
+ chips();eKZ();eSS();buildTL();renderJr();renderCal();renderBaza();uHint();tick()}
 $("imp").onclick=()=>{let o;const bad=()=>{$("bkm").textContent="Matn noto‘g‘ri.";toast("Matn noto‘g‘ri")};try{o=JSON.parse($("bk").value)}catch(e){bad();return}if(!o||typeof o!=="object"||Array.isArray(o)){bad();return}
  openPick("Tiklashni tasdiqlang",[["y","Ha, tiklash","Shu qurilmadagi ma’lumotlar kiritilgan matn bilan almashadi"],["n","Bekor qilish"]],"n",v=>{if(v!=="y")return;try{dropN=0;applyData(o);$("bkm").textContent="Tiklandi."+(dropN?" "+dropN+" ta yaroqsiz savdo o‘tkazib yuborildi.":"");toast("Tiklandi")}catch(e){bad()}})};
 const GH={o:ld("gho","mrgaffarov"),r:ld("ghr","killzone-data"),t:ld("ght","")},GP_OLD="data/killzone-data.json";
-["gho","ghr","ght"].forEach(id=>{
+["gho","ghr"].forEach(id=>{
  $(id).value=GH[id[2]];
  $(id).onchange=()=>{
   GH[id[2]]=$(id).value.trim();
@@ -475,18 +498,23 @@ const GH={o:ld("gho","mrgaffarov"),r:ld("ghr","killzone-data"),t:ld("ght","")},G
   else setSync(GH.t?"idle":"off");
  };
 });
+/* Token DOM’ga qayta yozilmaydi: maydon doim bo‘sh ochiladi, saqlangach ham tozalanadi */
+const tokIn=$("ght");tokIn.value="";
+tokIn.onchange=()=>{const v=tokIn.value.trim();if(!v)return;GH.t=v;sv("ght",v);tokIn.value="";ghm("Token saqlandi. Maydon xavfsizlik uchun tozalandi.");renderBaza();if(autoOn())dirty();else setSync(GH.t?"idle":"off")};
+$("ghclear")&&($("ghclear").onclick=()=>askDel("Tokenni o‘chirish","Token shu telefondan o‘chiriladi va GitHub’ga saqlash to‘xtaydi.",()=>{GH.t="";try{localStorage.removeItem("ght")}catch(e){}tokIn.value="";ghm("Token o‘chirildi.");renderBaza();setSync("off");toast("Token o‘chirildi")}));
 const b64=s=>btoa(unescape(encodeURIComponent(s))),unb64=s=>decodeURIComponent(escape(atob(s.replace(/\s/g,""))));
 const ghf=p=>"https://api.github.com/repos/"+GH.o+"/"+GH.r+"/contents/"+p,ghm=t=>{$("ghm").textContent=t};
 const ghh=raw=>{const h={Accept:raw?"application/vnd.github.raw+json":"application/vnd.github+json"};if(GH.t)h.Authorization="Bearer "+GH.t;return h};
 const hsh=x=>{let a=5381,b=2166136261|0;for(let i=0;i<x.length;i++){const c=x.charCodeAt(i);a=((a<<5)+a+c)|0;b=Math.imul(b^c,16777619)}return a+"."+(b>>>0)+"."+x.length};
 let GC=ld("ghc",{});
-const monthsOf=()=>{const m={};trades.forEach(t=>{const ts=tms(t),k=Number.isFinite(ts)?dk(ts).slice(0,7):(t.d||"").slice(0,7);(m[k]=m[k]||[]).push(t)});return m};
+const monthsOf=(T=trades)=>{const m={};T.forEach(t=>{const ts=tms(t),k=Number.isFinite(ts)?dk(ts).slice(0,7):(t.d||"").slice(0,7);(m[k]=m[k]||[]).push(t)});return m};
 const pack=(k,a)=>JSON.stringify({v:1,oy:k,savdolar:a.slice().sort((x,y)=>tms(x)-tms(y))},null,1);
-const setsPack=()=>JSON.stringify({v:1,jurnallar:JL,vaqtlar:KZ,sessiyalar:SS.map(y=>[y.s,y.e]),xatolar:MI,yangiliklar:mine,afzalliklar:{birlik:mt,hafta_oxiri:wk,davr:sp,tahlil:an,grafik:cm,mavzu:th,soat12:h12,tovush:snd,ogohlantirish:pre,zona:tz,utc:cu}},null,1);
-function statPack(ts){const mm=monthsOf(),agg=a=>{let tp=0,sl=0,r=0,u=0,gwR=0,glR=0,gwU=0,glU=0;a.forEach(t=>{const c=oc(t);if(c==="w")tp++;else if(c==="l")sl++;const rv=+t.r||0,uv=+t.u||0;r+=rv;u+=uv;if(rv>0)gwR+=rv;else glR-=rv;if(uv>0)gwU+=uv;else glU-=uv});const n=tp+sl;
-  return{savdo:a.length,tp,sl,winrate:n?+(tp/n*100).toFixed(1):null,pnl_r:+r.toFixed(2),pnl_usd:+u.toFixed(2),profit_factor_r:glR?+(gwR/glR).toFixed(2):null,profit_factor_usd:glU?+(gwU/glU).toFixed(2):null}},oy={};
- Object.keys(mm).sort().forEach(k=>oy[k]=agg(mm[k]));const o={v:1,jurnal:curJ().n,valyuta:curJ().cur,eslatma:"Savdolardan hisoblangan xulosa. Ilova uni o‘qimaydi, faqat GitHub’da ko‘rish uchun.",jami:agg(trades),oylar:oy};if(ts)o.yangilangan=new Date().toISOString();return JSON.stringify(o,null,1)}
-function applySets(o){if(Array.isArray(o.jurnallar)){const L=o.jurnallar.map(x=>({id:String(x&&x.id||"").replace(/[^\w-]/g,""),n:String(x&&x.n||"Jurnal").slice(0,30),cur:x&&x.cur==="USC"?"USC":"USD",b0:+(x&&x.b0)||0,rk:+(x&&x.rk)||2.5,arc:!!(x&&x.arc)})).filter(x=>x.id);
+const setsPack=(S)=>{const jl=S?S.jl:JL,kz=S?S.kz:KZ,ss=S?S.ss:SS.map(y=>[y.s,y.e]),mi=S?S.mi:MI,nw=S?S.nw:mine,pf=S?S.pf:{birlik:mt,hafta_oxiri:wk,davr:sp,tahlil:an,grafik:cm,mavzu:th,soat12:h12,tovush:snd,ogohlantirish:pre,zona:tz,utc:cu};
+ return JSON.stringify({v:1,jurnallar:jl,vaqtlar:kz,sessiyalar:ss,xatolar:mi,yangiliklar:nw,afzalliklar:pf},null,1)};
+function statPack(ts,T,J){T=T||trades;J=J||curJ();const f=J.cur==="USC"?0.01:1,mm=monthsOf(T),agg=a=>{let tp=0,sl=0,r=0,u=0,gwR=0,glR=0,gwU=0,glU=0;a.forEach(t=>{const c=oc(t);if(c==="w")tp++;else if(c==="l")sl++;const rv=+t.r||0,uv=+t.u||0;r+=rv;u+=uv;if(rv>0)gwR+=rv;else glR-=rv;if(uv>0)gwU+=uv;else glU-=uv});const n=tp+sl;
+  return{savdo:a.length,tp,sl,winrate:n?+(tp/n*100).toFixed(1):null,pnl_r:+r.toFixed(2),pnl_account:+u.toFixed(2),pnl_usd:+(u*f).toFixed(2),profit_factor_r:glR?+(gwR/glR).toFixed(2):null,profit_factor_pnl:glU?+(gwU/glU).toFixed(2):null}},oy={};
+ Object.keys(mm).sort().forEach(k=>oy[k]=agg(mm[k]));const o={v:2,jurnal:J.n,valyuta:J.cur,birlik:J.cur,balans:+J.b0,balans_usd:+(J.b0*f).toFixed(2),eslatma:"Savdolardan hisoblangan xulosa. Ilova uni o‘qimaydi, faqat GitHub’da ko‘rish uchun.",jami:agg(T),oylar:oy};if(ts)o.yangilangan=new Date().toISOString();return JSON.stringify(o,null,1)}
+function applySets(o){if(Array.isArray(o.jurnallar)){const L=o.jurnallar.map(normJ).filter(x=>x.id);
   if(L.length){if(!L.some(x=>x.id==="main"))L.unshift(JD0);JL=L;sv("jl",JL);if(!JL.some(x=>x.id===jid)){jid="main";sv("jid",jid);trades=normTrades(ld(TRK(),[]))}jUpd()}}
  {const z=normKZ(o.vaqtlar);if(z){KZ=z;sv("kz",KZ)}}
  if(Array.isArray(o.sessiyalar)){o.sessiyalar.forEach((v,i)=>{if(SS[i]&&okSS(v)){SS[i].s=v[0];SS[i].e=v[1]}});sv("ss",SS.map(y=>[y.s,y.e]))}
@@ -505,28 +533,38 @@ async function ghPut(path,content,msg,hkey,over){const key=hsh(hkey===undefined?
   if((r.status===409||r.status===422)&&a===0){const g=await fetch(ghf(path),{headers:ghh(),cache:"no-store"});if(g.ok){const gj=await g.json();let same=false;try{same=unb64(gj.content)===content}catch(e){}if(same){GC[path]={h:key,sha:gj.sha};sv("ghc",GC);return"o‘zgarmagan"}if(!over)throw new Error("conflict");sha=gj.sha}else{if(g.status!==404)throw new Error(g.status);sha=undefined}continue}
   throw new Error(r.status)}}
 async function ghSave0(force,quiet){if(!GH.t){ghm("Avval tokenni kiriting.");return"token"}if(force){GC={};sv("ghc",GC)}ghm("Saqlanmoqda…");const L=[];
- try{const mm=monthsOf(),keys=new Set(Object.keys(mm));const sd=JB()+"savdolar/";Object.keys(GC).forEach(p=>{const m=p.startsWith(sd)&&p.slice(sd.length).match(/^(\d{4}-\d{2})\.json$/);if(m)keys.add(m[1])});
-  const total=keys.size+2;let done=0;const adv=()=>{done++;setProg(done/total*100);setSync("busy")};
-  for(const k of [...keys].sort()){L.push(k+".json — "+await ghPut(JB()+"savdolar/"+k+".json",pack(k,mm[k]||[]),"Savdolar "+k+" yangilandi",undefined,force));adv()}
-  L.push("sozlamalar.json — "+await ghPut("data/sozlamalar.json",setsPack(),"Sozlamalar yangilandi",undefined,force));adv();
-  L.push("statistika.json — "+await ghPut(JB()+"statistika.json",statPack(true),"Statistika yangilandi",statPack(false),true));adv();
+ try{
+  /* Saqlash boshlanishida holat qotiriladi: shu payt jurnal almashsa ham fayllar aralashib ketmaydi */
+  const S={jl:JL.map(x=>Object.assign({},x)),kz:KZ,ss:SS.map(y=>[y.s,y.e]),mi:MI.slice(),nw:mine.map(n=>Object.assign({},n)),pf:{birlik:mt,hafta_oxiri:wk,davr:sp,tahlil:an,grafik:cm,mavzu:th,soat12:h12,tovush:snd,ogohlantirish:pre,zona:tz,utc:cu}};
+  const ids=[...new Set([jid,...PJ])].filter(id=>S.jl.some(x=>x.id===id)),jobs=[];
+  [...PJ].forEach(id=>{if(!S.jl.some(x=>x.id===id))clearPJ(id)});
+  ids.forEach(id=>{const J=S.jl.find(x=>x.id===id)||JD0,T=id===jid?trades.slice():normTrades(ld(jKey(id),[])),mm=monthsOf(T),base=jBase(id),keys=new Set(Object.keys(mm)),pre=base+"savdolar/";
+   Object.keys(GC).forEach(p=>{if(!p.startsWith(pre))return;const m=p.slice(pre.length).match(/^(\d{4}-\d{2})\.json$/);if(m)keys.add(m[1])});
+   [...keys].sort().forEach(k=>jobs.push({base,T:mm[k]||[],k}));jobs.push({base,T,J,stat:true})});
+  const total=jobs.length+1;let done=0;const adv=()=>{done++;setProg(done/total*100);setSync("busy")};
+  for(const j of jobs){
+   if(j.stat)L.push("statistika.json — "+await ghPut(j.base+"statistika.json",statPack(true,j.T,j.J),"Statistika yangilandi",statPack(false,j.T,j.J),true));
+   else L.push(j.k+".json — "+await ghPut(j.base+"savdolar/"+j.k+".json",pack(j.k,j.T),"Savdolar "+j.k+" yangilandi",undefined,force));
+   adv()}
+  L.push("sozlamalar.json — "+await ghPut("data/sozlamalar.json",setsPack(S),"Sozlamalar yangilandi",undefined,force));adv();
+  ids.forEach(clearPJ);
   const ch=L.filter(x=>x.endsWith("yangilandi")).length;ghm(ch+" fayl yangilandi, "+(L.length-ch)+" fayl o‘zgarmagan.");sv("ghlast",Date.now());if(!quiet)toast("GitHub’ga saqlandi");return null}
  catch(e){ghm((L.length?L.join("\n")+"\n":"")+ghErr(e));return e}}
 async function ghRestore0(){ghm("Yuklanmoqda…");
  try{const get=(p,raw)=>fetch(ghf(p),{headers:ghh(raw),cache:"no-store"});
   const ls=await get(JB()+"savdolar"),st=await get("data/sozlamalar.json");
   if(!ls.ok&&!st.ok){const old=jid==="main"?await get(GP_OLD):{ok:false,status:0};
-   if(old.ok){applyData(JSON.parse(unb64((await old.json()).content)));renderBaza();ghm("Eski formatdan tiklandi. Endi “Saqlash” yangi tuzilmada yozadi.");toast("Tiklandi");return"ok"}
+   if(old.ok){applyData(JSON.parse(unb64((await old.json()).content)));clearPJ(jid);renderBaza();ghm("Eski formatdan tiklandi. Endi “Saqlash” yangi tuzilmada yozadi.");toast("Tiklandi");return"ok"}
    const bs=[ls.status,st.status,old.status].find(x=>x===401||x===403);if(bs)throw new Error(bs);
    ghm("Hali saqlanmagan yoki omborxona topilmadi (private bo‘lsa token kerak).");return"none"}
   let all=[],nf=0;
   if(ls.ok){const files=(await ls.json()).filter(f=>/^\d{4}-\d{2}\.json$/.test(f.name)),res=await Promise.all(files.map(async f=>{const r=await get(f.path,true);if(!r.ok)throw new Error(r.status);const tx=await r.text();GC[f.path]={h:hsh(tx),sha:f.sha};return JSON.parse(tx).savdolar||[]}));const seen=new Set();res.forEach(a=>{const ks=a.map(t=>JSON.stringify(t));all=all.concat(a.filter((t,i)=>!seen.has(ks[i])));ks.forEach(k=>seen.add(k));nf++})}
   if(ls.ok){trades=normTrades(all);sv("tr",trades)}
   if(st.ok){const j=await st.json(),tx=unb64(j.content);GC["data/sozlamalar.json"]={h:hsh(tx),sha:j.sha};applySets(JSON.parse(tx))}
-  sv("ghc",GC);refreshAll();renderBaza();ghm("GitHub’dan tiklandi: "+trades.length+" ta savdo ("+nf+" oy fayli)"+(all.length>trades.length?", "+(all.length-trades.length)+" ta yaroqsiz yozuv o‘tkazib yuborildi":"")+(st.ok?", sozlamalar":"")+".");toast("Tiklandi");return"ok"}
+  sv("ghc",GC);clearPJ(jid);refreshAll();renderBaza();ghm("GitHub’dan tiklandi: "+trades.length+" ta savdo ("+nf+" oy fayli)"+(all.length>trades.length?", "+(all.length-trades.length)+" ta yaroqsiz yozuv o‘tkazib yuborildi":"")+(st.ok?", sozlamalar":"")+".");toast("Tiklandi");return"ok"}
  catch(e){ghm(ghErr(e));return{e}}};
 
-let syncing=false,again=false,at=null,retry=null,syncOff=0;
+let syncing=false,again=false,at=null,retry=null,syncOff=0,syncTask=null;
 const autoOn=()=>!!(GH.t&&GH.o&&GH.r)&&ld("ghauto",true);
 let PG=0,hideT=null,sawBusy=false;
 const gsb=()=>$("gsb");
@@ -538,14 +576,18 @@ function setSync(st){const g=gsb(),fresh=st==="ok"&&sawBusy;clearTimeout(hideT);
  else if(fresh||st==="err"||st==="offline"){sawBusy=false;setProg(100);g.classList.add("st-"+st,"show");hideT=setTimeout(()=>g.classList.remove("show"),fresh?1300:2600)}
  else{sawBusy=false;g.classList.remove("show")}}
 function dirty(){try{if(syncOff)return;if(!autoOn()){setSync(GH.t?"idle":"off");return}clearTimeout(at);setSync("wait");at=setTimeout(()=>syncNow(false,true),2000)}catch(e){}}
-async function syncNow(force,quiet){if(syncing){again=true;return}syncing=true;clearTimeout(at);clearTimeout(retry);setProg(0);setSync("busy");$("ghsave").disabled=true;
- const e=await ghSave0(force,quiet);syncing=false;$("ghsave").disabled=false;
- if(!e)setSync("ok");else if(e==="token")setSync("off");else{const m=String(e&&e.message||e),net=!/^\d+$/.test(m)&&m!=="conflict";setSync(net?"offline":"err");if(net)retry=setTimeout(()=>{if(autoOn())syncNow(false,true)},30000)}
- renderBaza();if(again){again=false;dirty()}}
+async function syncNow(force,quiet){if(syncTask){again=true;return syncTask}
+ const run=async()=>{syncing=true;clearTimeout(at);clearTimeout(retry);setProg(0);setSync("busy");$("ghsave").disabled=true;
+  const e=await ghSave0(force,quiet);syncing=false;$("ghsave").disabled=false;
+  if(!e)setSync("ok");else if(e==="token")setSync("off");else{const m=String(e&&e.message||e),net=!/^\d+$/.test(m)&&m!=="conflict";setSync(net?"offline":"err");if(net)retry=setTimeout(()=>{if(autoOn())syncNow(false,true)},30000)}
+  renderBaza();if(again){again=false;dirty()}return e};
+ syncTask=run();try{return await syncTask}finally{syncTask=null}}
+/* Jurnal almashishdan oldin kutilayotgan saqlashni tugatadi (ma’lumot boshqa jurnalga yozilib qolmasin) */
+async function flushSync(){for(let i=0;i<4;i++){if(at){clearTimeout(at);at=null;if(autoOn())syncNow(false,true)}if(!syncTask)break;try{await syncTask}catch(e){}}}
 $("ghsave").onclick=()=>syncNow(false,false);$("ghfull").onclick=()=>syncNow(true,false);
 $("gauto").onchange=e=>{sv("ghauto",e.target.checked);if(e.target.checked)dirty();else{clearTimeout(at);setSync(GH.t?"idle":"off")}};
 window.addEventListener("online",()=>{if(autoOn())dirty()});
-async function ghRestore(){syncOff++;let r;try{r=await ghRestore0()}finally{syncOff--}
+async function ghRestore(){clearTimeout(at);at=null;for(let i=0;i<4&&syncTask;i++){try{await syncTask}catch(e){}}syncOff++;let r;try{r=await ghRestore0()}finally{syncOff--}
  if(r==="ok")setSync(autoOn()?"ok":(GH.t?"idle":"off"));
  else if(r==="none")initSync();
  else{const m=String(r&&r.e&&r.e.message||(r&&r.e)||""),net=!/^\d+$/.test(m)&&m!=="conflict";setSync(net?"offline":"err")}}
@@ -559,27 +601,31 @@ function bazaRows(){const mm=monthsOf(),rows=[],chk=(p,key)=>!GC[p]?"y":GC[p].h=
 const pendN=()=>bazaRows().rows.filter(r=>r[2]!=="s").length;
 function renderBaza(){const ok=!!(GH.t&&GH.r&&GH.o),last=ld("ghlast",0),{rows,mm}=bazaRows();
  $("ghs").textContent=ok?"GitHub bilan ulangan":"Ulanmagan";$("ghr2").textContent=ok?GH.o+"/"+GH.r:"Ulanish sozlamalarida token va omborxonani kiriting";
- const pend=rows.filter(r=>r[2]!=="s").length;
+ const pend=rows.filter(r=>r[2]!=="s").length+[...PJ].filter(id=>id!==jid).length;
  $("gbd").textContent=!ok?"":pend?pend+" ta o‘zgargan":"Hammasi saqlangan";$("gbd").className="gbadge "+(pend?"warn":"okb");
  $("gsx").innerHTML="<div><b>"+trades.length+"</b>savdo</div><div><b>"+Object.keys(mm).length+"</b>oy fayli</div><div><b>"+(last?ago(last):"—")+"</b>oxirgi saqlash</div>";
  $("gauto").checked=ld("ghauto",true);
  $("gfl").innerHTML=rows.map(r=>'<div class="fl2"><span class="ib">'+IC("db")+'</span><div class="fn"><b>'+esc(r[0])+"</b><small>"+esc(r[1])+'</small></div><span class="fchip st-'+r[2]+'">'+(r[2]==="s"?"Saqlangan":r[2]==="y"?"Yangi":"O‘zgargan")+"</span></div>").join("")}
-function initSync(){if(!(GH.t&&GH.o&&GH.r))setSync("off");else if(!ld("ghauto",true))setSync("idle");else if(pendN()>0)dirty();else setSync("ok")}
+function initSync(){if(!(GH.t&&GH.o&&GH.r))setSync("off");else if(!ld("ghauto",true))setSync("idle");else if(pendN()>0||PJ.size>0)dirty();else setSync("ok")}
 
 /* ---- jurnallar ---- */
 let jEd=null,jcur="USD",jar=0;
-function jUpd(){const x=curJ(),n=x.n+(x.arc?" · yopilgan":"");$("jnm").textContent=n;$("sjn").textContent="Jurnal: "+n+" · "+x.cur}
-function switchJ(id){if(id===jid||!JL.some(x=>x.id===id))return;jid=id;sv("jid",jid);trades=normTrades(ld(TRK(),[]));editT=null;selDay=null;anc=todayK();jUpd();refreshAll();renderBaza();if(!trades.length&&GH.t&&GH.o&&GH.r)ghRestore()}
-function jMenu(){openPick("Jurnal",JL.map(x=>[x.id,x.n+(x.arc?" · yopilgan":""),x.cur+" · boshlang‘ich "+x.b0+" · risk "+x.rk+"%"+(x.id===jid?" · tanlangan":"")]).concat([["_n","+ Yangi jurnal"],["_e","Tanlangan jurnalni tahrirlash"]]),jid,v=>{if(v==="_n")jForm(null);else if(v==="_e")jForm(curJ());else switchJ(v)})}
-function jSet(c,a){jcur=c;jar=a;document.querySelectorAll("#jcs button").forEach(b=>b.classList.toggle("on",b.dataset.v===c));document.querySelectorAll("#jas button").forEach(b=>b.classList.toggle("on",+b.dataset.v===a))}
-function jForm(x){jEd=x;$("jt").textContent=x?"Jurnalni tahrirlash":"Yangi jurnal";$("jn").value=x?x.n:"";$("jb0").value=x?x.b0:"";$("jrk").value=x?x.rk:2.5;jSet(x?x.cur:"USD",x&&x.arc?1:0);$("jal").classList.toggle("hide",!x);$("jm").classList.remove("hide")}
+function uHintJ(){const el=$("jb0h");if(!el)return;const v=parseFloat($("jb0").value);el.textContent=!(v>=0)?"":jcur==="USC"?"= "+fromUsd(v)+" sent (USC)":"= $"+fromUsd(v).toFixed(2)}
+function jUpd(){const x=curJ(),n=x.n+(x.arc?" · yopilgan":"");$("jnm").textContent=n;$("sjn").textContent="Jurnal: "+n+" · "+x.cur+" · balans $"+toUsd(x.b0).toFixed(2);uHint()}
+async function switchJ(id){if(id===jid||!JL.some(x=>x.id===id))return;await flushSync();if(id===jid||!JL.some(x=>x.id===id))return;
+ jid=id;sv("jid",jid);trades=normTrades(ld(TRK(),[]));editT=null;selDay=null;anc=todayK();jUpd();refreshAll();renderBaza();if(!trades.length&&GH.t&&GH.o&&GH.r)ghRestore()}
+function jMenu(){openPick("Jurnal",JL.map(x=>[x.id,x.n+(x.arc?" · yopilgan":""),x.cur+" · boshlang‘ich $"+toUsd(x.b0).toFixed(2)+" · risk "+x.rk+"%"+(x.id===jid?" · tanlangan":"")]).concat([["_n","+ Yangi jurnal"],["_e","Tanlangan jurnalni tahrirlash"]]),jid,v=>{if(v==="_n")jForm(null);else if(v==="_e")jForm(curJ());else switchJ(v)})}
+function jSet(c,a){jcur=c;jar=a;document.querySelectorAll("#jcs button").forEach(b=>b.classList.toggle("on",b.dataset.v===c));document.querySelectorAll("#jas button").forEach(b=>b.classList.toggle("on",+b.dataset.v===a));uHintJ()}
+function jForm(x){jEd=x;$("jt").textContent=x?"Jurnalni tahrirlash":"Yangi jurnal";$("jn").value=x?x.n:"";$("jb0").value=x?String(toUsd(x.b0)):"";$("jrk").value=x?x.rk:2.5;jSet(x?x.cur:"USD",x&&x.arc?1:0);$("jal").classList.toggle("hide",!x);$("jm").classList.remove("hide")}
 $("jb").onclick=jMenu;
 $("jcs").onclick=e=>{const b=e.target.closest("button");if(b)jSet(b.dataset.v,jar)};
 $("jas").onclick=e=>{const b=e.target.closest("button");if(b)jSet(jcur,+b.dataset.v)};
+$("jb0").oninput=uHintJ;
 $("jbd").onclick=$("jclose").onclick=()=>$("jm").classList.add("hide");
-$("jsave").onclick=()=>{const n=$("jn").value.trim().slice(0,30),b0=parseFloat($("jb0").value),rk=parseFloat($("jrk").value);
+$("jsave").onclick=()=>{const n=$("jn").value.trim().slice(0,30),b0=fromUsd(parseFloat($("jb0").value)),rk=parseFloat($("jrk").value);
  if(!n){toast("Jurnal nomini kiriting");return}
  if(JL.some(x=>x!==jEd&&x.n.toLowerCase()===n.toLowerCase())){toast("Bunday nomli jurnal bor");return}
+ if(jEd&&jEd.cur!==jcur&&((jEd.id===jid?trades:normTrades(ld(jKey(jEd.id),[]))).length)){toast("Valyutani o‘zgartirib bo‘lmaydi: jurnalda savdolar bor. Yangi jurnal yarating.");return}
  if(!(b0>=0)||!(rk>0&&rk<=100)){toast("Balans va riskni to‘g‘ri kiriting");return}
  let id;if(jEd){Object.assign(jEd,{n,b0,rk,cur:jcur,arc:!!jar});id=jEd.id}else{id="j"+Date.now().toString(36);JL.push({id,n,b0,rk,cur:jcur,arc:false})}
  sv("jl",JL);$("jm").classList.add("hide");if(id!==jid)switchJ(id);else jUpd();toast("Saqlandi")};
@@ -609,29 +655,46 @@ function imBuild(){const J=curJ(),o=(+$("iuo").value||0)*36e5,P=s=>Date.parse(s.
   rsk=(!nosl&&!mv&&fac[r.b])?Math.abs(r.op-r.sl)*fac[r.b]:bs,hit=!nosl&&Math.abs(r.cp-r.sl)<=r.op*3e-5,net=r.net,
   out=net===0?"d":(mv&&hit&&Math.abs(net)<=.25*bs)?"d":net>0?"w":"l",tag=nosl?"SL yo‘q":mv?"SL kirishga ko‘chirilgan":"";
   return{r,tag,t:Object.assign({ts:r.o},kzOf(r.o),{p:r.b,s:buy?"Buy":"Sell",out,r:rsk>0?+(net/rsk).toFixed(2):0,u:+net.toFixed(2),nt:tag,mi:[],tk:r.id})}})}
-function imCnt(){const k=IM.items.filter(x=>IM.sel.has(x.r.id)&&x.st!=="dup").length;$("iaddl").textContent="Tanlanganlarni qo‘shish ("+k+")";$("iadd").disabled=!k}
-function imRender(){const J=curJ(),it=IM.items=imBuild();
+function imCnt(){const k=IM.items.filter(x=>IM.sel.has(x.r.id)&&x.st!=="dup").length;$("iaddl").textContent="Tanlanganlarni qo‘shish ("+k+")";$("iadd").disabled=!k||!!IM.blocked}
+function imRender(){const J=curJ(),it=IM.items=imBuild(),cf=J.cur==="USC"?0.01:1,usd=v=>(v*cf).toFixed(2);
  it.forEach(x=>{x.st=trades.some(y=>y.tk===x.r.id)?"dup":trades.some(y=>y.p===x.t.p&&y.s===x.t.s&&Math.abs(tms(y)-x.t.ts)<=12e4)?"near":"new"});
  if(!IM.sel)IM.sel=new Set(it.filter(x=>x.st==="new").map(x=>x.r.id));
  const c=f=>it.filter(f).length,tot=it.reduce((s,x)=>s+x.r.net,0),stm=IM.p.sum==null?null:+IM.p.sum,ok=stm!==null&&Math.abs(tot-stm)<.01,w=[];
- if(stm!==null&&!ok)w.push("Yig‘indi hisobot bilan mos kelmadi ("+stm+"). Fayl to‘liq o‘qilmagan bo‘lishi mumkin.");
- if(IM.p.cur&&((/^USC/i.test(IM.p.cur))!==(J.cur==="USC")))w.push("Hisob valyutasi "+IM.p.cur+", jurnal valyutasi "+J.cur+". Jurnalni tekshiring.");
+ IM.blocked=!!(IM.p.cur&&((/^USC/i.test(IM.p.cur))!==(J.cur==="USC")));
+ if(IM.blocked)w.push("⛔ Import to‘xtatildi: hisobot valyutasi "+IM.p.cur+", jurnal valyutasi "+J.cur+". Avval shu valyutadagi jurnalni tanlang (yoki yaratib, o‘shanga o‘ting).");
+ if(stm!==null&&!ok)w.push("Yig‘indi hisobot bilan mos kelmadi ($"+usd(stm)+"). Fayl to‘liq o‘qilmagan bo‘lishi mumkin.");
  if(c(x=>x.st==="near"))w.push(c(x=>x.st==="near")+" ta savdo qo‘lda kiritilganlarga o‘xshaydi (belgilanmagan).");
  $("isub").textContent=J.n+" · "+J.cur+(IM.p.acc?" · hisob "+IM.p.acc:"");
  $("isum").innerHTML='<div class="kpis"><div><b>'+it.length+'</b>savdo</div><div><b>'+c(x=>x.st==="new")+'</b>yangi</div><div><b>'+c(x=>x.st==="dup")+'</b>takror</div></div>'
-  +'<div class="foot" style="margin:8px 0">Sof P&amp;L: <b>'+tot.toFixed(2)+"</b>"+(stm!==null?" · hisobotda: "+stm+(ok?" ✓":" ⚠"):"")+" · SL yo‘q: "+c(x=>x.tag==="SL yo‘q")+" · SL ko‘chirilgan: "+c(x=>x.tag==="SL kirishga ko‘chirilgan")+" · breakeven: "+c(x=>x.t.out==="d")+"</div>"+w.map(x=>'<div class="warn">'+esc(x)+"</div>").join("");
- $("ilist").innerHTML=it.map(x=>'<label class="irw'+(x.st==="dup"?" off":"")+'"><input type="checkbox" data-k="'+x.r.id+'"'+(IM.sel.has(x.r.id)&&x.st!=="dup"?" checked":"")+(x.st==="dup"?" disabled":"")+'><span>'+esc(x.t.d.slice(5,16))+" · "+esc(x.t.p)+" "+x.t.s+'<br><span class="mu">'+esc(x.st==="dup"?"takror":x.st==="near"?"ehtimoliy takror":x.tag)+'</span></span><b class="'+(x.t.u>0?"pos":x.t.u<0?"neg":"")+'">'+(x.t.u>0?"+":"")+x.t.u+" · "+x.t.r+"R</b></label>").join("");imCnt()}
+  +'<div class="foot" style="margin:8px 0">Sof P&amp;L: <b>$'+usd(tot)+"</b>"+(stm!==null?" · hisobotda: $"+usd(stm)+(ok?" ✓":" ⚠"):"")+" · SL yo‘q: "+c(x=>x.tag==="SL yo‘q")+" · SL ko‘chirilgan: "+c(x=>x.tag==="SL kirishga ko‘chirilgan")+" · breakeven: "+c(x=>x.t.out==="d")+"</div>"+w.map(x=>'<div class="warn">'+esc(x)+"</div>").join("");
+ $("ilist").innerHTML=it.map(x=>{const uu=x.t.u*cf;return'<label class="irw'+(x.st==="dup"?" off":"")+'"><input type="checkbox" data-k="'+x.r.id+'"'+(IM.sel.has(x.r.id)&&x.st!=="dup"?" checked":"")+(x.st==="dup"?" disabled":"")+'><span>'+esc(x.t.d.slice(5,16))+" · "+esc(x.t.p)+" "+x.t.s+'<br><span class="mu">'+esc(x.st==="dup"?"takror":x.st==="near"?"ehtimoliy takror":x.tag)+'</span></span><b class="'+(uu>0?"pos":uu<0?"neg":"")+'">'+(uu>0?"+":"")+uu.toFixed(2)+"$ · "+x.t.r+"R</b></label>"}).join("");imCnt()}
 $("imb").onclick=()=>{if(curJ().arc){toast("Jurnal yopilgan, faqat ko‘rish");return}$("imf").click()};
 $("imf").onchange=async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;toast("Fayl o‘qilmoqda…");
- try{const p=parseSt(await fileText(f));if(!p.rows.length){toast("Savdo topilmadi. Exness statement (PDF) kerak");return}IM={p,sel:null,items:[]};$("iuo").value=0;imRender();$("im").classList.remove("hide")}
+ try{const p=parseSt(await fileText(f));if(!p.rows.length){toast("Savdo topilmadi. Exness statement (PDF) kerak");return}IM={p,sel:null,items:[],blocked:false};$("iuo").value=0;imRender();$("im").classList.remove("hide")}
  catch(err){toast(err&&err.message==="pdfjs"?"PDF modulini yuklab bo‘lmadi (internet kerak)":"Faylni o‘qib bo‘lmadi")}};
 $("iuo").oninput=()=>{if(IM)imRender()};
 $("ilist").onchange=e=>{const c=e.target;if(IM&&c.dataset.k){c.checked?IM.sel.add(c.dataset.k):IM.sel.delete(c.dataset.k);imCnt()}};
 $("ibd").onclick=$("iclose").onclick=()=>{$("im").classList.add("hide");IM=null};
-$("iadd").onclick=()=>{if(!IM)return;const add=IM.items.filter(x=>IM.sel.has(x.r.id)&&x.st!=="dup").map(x=>x.t);if(!add.length){toast("Savdo tanlanmagan");return}
+$("iadd").onclick=()=>{if(!IM)return;if(IM.blocked){toast("Valyuta mos emas: avval mos jurnalni tanlang");return}const add=IM.items.filter(x=>IM.sel.has(x.r.id)&&x.st!=="dup").map(x=>x.t);if(!add.length){toast("Savdo tanlanmagan");return}
  add.forEach(t=>trades.unshift(t));sv("tr",trades);selDay=null;anc=dk(Math.max(...add.map(t=>t.ts)));$("im").classList.add("hide");IM=null;renderJr();toast(add.length+" ta savdo qo‘shildi")};
+
+/* ---- localStorage ko‘riqchi va zaxira ---- */
+function lsKeys(){const a=[];try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k)a.push(k)}}catch(e){}return a.sort()}
+function lsData(){const o={};lsKeys().forEach(k=>{if(k==="ght"){o[k]="*** (yashirilgan)";return}const raw=localStorage.getItem(k);try{o[k]=JSON.parse(raw)}catch(e){o[k]=raw}});return o}
+function lsPretty(){return JSON.stringify({ilova:APP_VER,vaqt:new Date().toISOString(),localStorage:lsData()},null,2)}
+function lsSize(){return lsKeys().reduce((s,k)=>s+String(localStorage.getItem(k)||"").length,0)}
+function lsRefresh(){const m=$("lsm");if(!m)return;m.textContent=lsKeys().length+" kalit · "+Math.round(lsSize()/1024)+" KB · savdo: "+trades.length+" · jurnal: "+JL.length}
+function dlText(name,text){try{const b=new Blob([text],{type:"application/json"}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove()},1500);return true}catch(e){return false}}
+const lsName=()=>"forex-killzone-backup-"+new Date().toISOString().slice(0,16).replace(/[T:]/g,"-")+".json";
+if($("lsview")&&$("lsdl")&&$("lscopy")&&$("lsref")&&$("lsta")&&$("lsmsg")){
+ $("lsview").onclick=()=>{const s=lsPretty();$("lsta").value=s;$("lsmsg").textContent="Ko‘rsatildi. Token yashirilgan.";lsRefresh()};
+ $("lscopy").onclick=()=>{const s=$("lsta").value||lsPretty();copyText(s).then(ok=>{$("lsmsg").textContent=ok?"Nusxalandi.":"Nusxalab bo‘lmadi.";toast(ok?"Nusxalandi":"Nusxalab bo‘lmadi")})};
+ $("lsdl").onclick=()=>{const s=lsPretty();$("lsta").value=s;const ok=dlText(lsName(),s);$("lsmsg").textContent=ok?"Fayl yuklanmoqda: "+lsName():"Fayl yuklab bo‘lmadi. “Nusxalash”dan foydalaning."};
+ $("lsref").onclick=()=>{lsRefresh();$("lsmsg").textContent="Yangilandi."};
+}
+lsRefresh();
 
 /* ---- boshlash ---- */
 $("ver").textContent="Versiya: "+APP_VER;$("cr").textContent="© "+new Date().getFullYear()+" Barcha huquqlar himoyalangan.";
-applyTh();refreshTz();chips();eKZ();eSS();buildTL();tick();renderJr();renderCal();renderBaza();$("gcon").open=!GH.t;initSync();jUpd();
+applyTh();refreshTz();chips();eKZ();eSS();buildTL();tick();renderJr();renderCal();renderBaza();$("gcon").open=!GH.t;initSync();jUpd();uHint();
 setInterval(tick,1000);setInterval(buildTL,3600000);
