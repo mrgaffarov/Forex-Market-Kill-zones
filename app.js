@@ -1,8 +1,11 @@
 "use strict";
 /* Ilova versiyasi: sw.js (VER) va index.html (?v=) bilan BIR XIL bo‘lishi shart */
-const APP_VER="v3.6.2";
-if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}
+const APP_VER="v3.7.0";
+/* APK (Capacitor) ichida service worker kerak emas — fayllar ilovaning o‘zida. */
+if("serviceWorker" in navigator&&!window.KZNative){navigator.serviceWorker.register("sw.js").catch(()=>{})}
 const NY="America/New_York",$=id=>document.getElementById(id),pad=n=>String(n).padStart(2,"0");
+/* Native qobiq (APK) bo‘lsa qo‘shimcha imkoniyatlar ishlaydi; brauzerda NAT=null. */
+const NAT=(typeof window!=="undefined"&&window.KZNative)||null;
 const ld=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
 const JD0={id:"main",n:"Exness cent",cur:"USC",b0:114,rk:2.5,arc:false};
 let JL=ld("jl",[JD0]),jid=ld("jid","main");if(!Array.isArray(JL)||!JL.some(x=>x&&x.id==="main"))JL=[JD0].concat(Array.isArray(JL)?JL.filter(x=>x&&x.id!=="main"):[]);if(!JL.some(x=>x.id===jid))jid="main";
@@ -183,7 +186,9 @@ const eSS=()=>edit($("sedit"),SS,"Ochilish","Yopilish",()=>{sv("ss",SS.map(y=>[y
 $("reset").onclick=()=>{KZ=JSON.parse(JSON.stringify(DEF));sv("kz",KZ);eKZ();buildTL();tick()};
 $("sreset").onclick=()=>{SSD.forEach((v,i)=>{SS[i].s=v[0];SS[i].e=v[1]});sv("ss",SSD);eSS();buildTL();tick()};
 function applyTh(){th==="auto"?document.documentElement.removeAttribute("data-theme"):document.documentElement.setAttribute("data-theme",th);
- try{const isD=th==="dark"||(th==="auto"&&!!window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches),m=document.querySelector("meta[name=theme-color]");if(m)m.content=isD?"#0b121b":"#f4f6f9"}catch(e){}document.querySelectorAll("#th button").forEach(b=>b.classList.toggle("on",b.dataset.v===th))}
+ let isD=false;try{isD=th==="dark"||(th==="auto"&&!!window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches),m=document.querySelector("meta[name=theme-color]");if(m)m.content=isD?"#0b121b":"#f4f6f9"}catch(e){}
+  try{NAT&&NAT.setTheme&&NAT.setTheme(!!isD)}catch(e){}
+  document.querySelectorAll("#th button").forEach(b=>b.classList.toggle("on",b.dataset.v===th))}
 document.querySelectorAll("#th button").forEach(b=>b.onclick=()=>{th=b.dataset.v;sv("th",th);applyTh()});
 try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{if(th==="auto")applyTh()})}catch(e){}
 
@@ -684,17 +689,33 @@ function lsData(){const o={};lsKeys().forEach(k=>{if(k==="ght"){o[k]="*** (yashi
 function lsPretty(){return JSON.stringify({ilova:APP_VER,vaqt:new Date().toISOString(),localStorage:lsData()},null,2)}
 function lsSize(){return lsKeys().reduce((s,k)=>s+String(localStorage.getItem(k)||"").length,0)}
 function lsRefresh(){const m=$("lsm");if(!m)return;m.textContent=lsKeys().length+" kalit · "+Math.round(lsSize()/1024)+" KB · savdo: "+trades.length+" · jurnal: "+JL.length}
-function dlText(name,text){try{const b=new Blob([text],{type:"application/json"}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove()},1500);return true}catch(e){return false}}
+/* Faylni saqlash: APK ichida native (Cache → “Ulashish”), brauzerda oddiy yuklab olish. */
+function dlText(name,text){
+ if(NAT&&NAT.saveFile){try{NAT.saveFile(name,text).catch(()=>{toast("Saqlab bo‘lmadi. “Nusxalash”dan foydalaning")});return"native"}catch(e){}}
+ try{const b=new Blob([text],{type:"application/json"}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove()},1500);return"web"}catch(e){return""}
+}
 const lsName=()=>"forex-killzone-backup-"+new Date().toISOString().slice(0,16).replace(/[T:]/g,"-")+".json";
 if($("lsview")&&$("lsdl")&&$("lscopy")&&$("lsref")&&$("lsta")&&$("lsmsg")){
  $("lsview").onclick=()=>{const s=lsPretty();$("lsta").value=s;$("lsmsg").textContent="Ko‘rsatildi. Token yashirilgan.";lsRefresh()};
  $("lscopy").onclick=()=>{const s=$("lsta").value||lsPretty();copyText(s).then(ok=>{$("lsmsg").textContent=ok?"Nusxalandi.":"Nusxalab bo‘lmadi.";toast(ok?"Nusxalandi":"Nusxalab bo‘lmadi")})};
- $("lsdl").onclick=()=>{const s=lsPretty();$("lsta").value=s;const ok=dlText(lsName(),s);$("lsmsg").textContent=ok?"Fayl yuklanmoqda: "+lsName():"Fayl yuklab bo‘lmadi. “Nusxalash”dan foydalaning."};
+ $("lsdl").onclick=()=>{const s=lsPretty();$("lsta").value=s;const n=lsName(),st=dlText(n,s);
+  $("lsmsg").textContent=st==="native"?"Fayl tayyor. “Ulashish” oynasidan Google Drive yoki Telegram’ni tanlang.":st==="web"?"Fayl yuklanmoqda: "+n:"Fayl yuklab bo‘lmadi. “Nusxalash”dan foydalaning."};
  $("lsref").onclick=()=>{lsRefresh();$("lsmsg").textContent="Yangilandi."};
 }
 lsRefresh();
 
+/* ---- Android “orqaga” tugmasi: avval ochiq oynani yopadi, keyin bosh sahifaga qaytadi ---- */
+function kzBack(){
+ try{const sh=[...document.querySelectorAll(".sheet")].filter(s=>s&&!s.classList.contains("hide"));
+  if(sh.length){const s=sh[sh.length-1],bd=s.querySelector(".bdp");if(bd&&typeof bd.onclick==="function"){bd.onclick();return true}s.classList.add("hide");return true}}catch(e){}
+ try{const a=document.querySelector("#nav button.a");if(a&&a.dataset.t!=="home"){const h=document.querySelector('#nav button[data-t="home"]');if(h){h.click();return true}}}catch(e){}
+ return false;
+}
+
 /* ---- boshlash ---- */
 $("ver").textContent="Versiya: "+APP_VER;$("cr").textContent="© "+new Date().getFullYear()+" Barcha huquqlar himoyalangan.";
 applyTh();refreshTz();chips();eKZ();eSS();buildTL();tick();renderJr();renderCal();renderBaza();$("gcon").open=!GH.t;initSync();jUpd();uHint();
+/* APK qobig‘i: orqaga tugmasi va splash’ni yopish */
+try{NAT&&NAT.onBack&&NAT.onBack(kzBack)}catch(e){}
+try{NAT&&NAT.hideSplash&&NAT.hideSplash()}catch(e){}
 setInterval(tick,1000);setInterval(buildTL,3600000);
