@@ -6,26 +6,44 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      KS_B64: ${{ secrets.KEYSTORE_BASE64 }}
+      KS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
+      KS_ALIAS: ${{ secrets.KEY_ALIAS }}
+      KS_KEYPASS: ${{ secrets.KEY_PASSWORD }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
-      - uses: actions/setup-java@v4
+          node-version: 22
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 17
       - name: Web fayllarni tayyorlash
         run: |
           mkdir -p www
-          cp index.html app.js sw.js style.css manifest.json icon-192.png icon-512.png www/
-          printf '%s\n' '{ "appId": "com.mrgaffarov.killzone", "appName": "Forex Kill Zone", "webDir": "www" }' > capacitor.config.json
+          cp index.html sw.js manifest.json icon-192.png icon-512.png www/
           npm init -y
-          npm i --no-audit --no-fund @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
+          npm i --no-audit --no-fund @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/app@6 @capacitor/filesystem@6 @capacitor/share@6 @capacitor/status-bar@6 @capacitor/splash-screen@6
+          npm i --no-audit --no-fund -D esbuild
+          npx esbuild app.js --minify --target=es2019 --outfile=www/app.js
+          npx esbuild style.css --minify --outfile=www/style.css
+          npx esbuild native-src.js --bundle --minify --target=es2019 --format=iife --outfile=www/native-bundle.js
+          cat > capacitor.config.json <<'JSON'
+          {
+            "appId": "com.mrgaffarov.killzone",
+            "appName": "Forex Kill Zone",
+            "webDir": "www",
+            "plugins": {
+              "SplashScreen": { "launchShowDuration": 500, "launchAutoHide": true, "backgroundColor": "#0b1220", "androidScaleType": "CENTER_CROP", "showSpinner": false },
+              "StatusBar": { "overlaysWebView": false, "style": "DARK", "backgroundColor": "#0b121b" }
+            }
+          }
+          JSON
           npx cap add android
           npx cap sync android
       - name: Ikona va splash
-        continue-on-error: true
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq imagemagick
@@ -33,16 +51,23 @@ jobs:
           convert icon-512.png -resize 1024x1024 resources/icon.png
           convert -size 2732x2732 xc:'#0b1220' \( icon-512.png -resize 900x900 \) -gravity center -composite resources/splash.png
           npm i --no-audit --no-fund @capacitor/assets
-          npx capacitor-assets generate --android
+          npx capacitor-assets generate --android --iconBackgroundColor '#0b1220' --iconBackgroundColorDark '#0b1220' --splashBackgroundColor '#0b1220' --splashBackgroundColorDark '#0b1220'
       - name: APK yig'ish
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
+      - name: Release imzo (ixtiyoriy)
+        if: env.KS_B64 != ''
+        run: |
+          echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/kz.keystore"
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          "$BT/apksigner" sign --ks "$RUNNER_TEMP/kz.keystore" --ks-pass "pass:$KS_PASS" --ks-key-alias "$KS_ALIAS" --key-pass "pass:$KS_KEYPASS" --out app-release.apk android/app/build/outputs/apk/debug/app-debug.apk
+          echo "APK_PATH=app-release.apk" >> "$GITHUB_ENV"
       - name: APK faylini yuklash
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: forex-kill-zone-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: ${{ env.APK_PATH || 'android/app/build/outputs/apk/debug/app-debug.apk' }}
           if-no-files-found: error
           
