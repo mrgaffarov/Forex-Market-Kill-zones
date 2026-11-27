@@ -9,7 +9,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=3.6.2">
+<link rel="stylesheet" href="style.css?v=3.6.3">
 <title>Forex Kill Zone</title>
 </head>
 <body>
@@ -35,8 +35,9 @@
 
 <div class="gsb" id="gsb" aria-hidden="true"><i></i></div>
 <header class="top">
-  <div><div class="clock" id="clock">--:--:--</div><div class="sub" id="sub"></div></div>
+  <div class="clock" id="clock">--:--:--</div>
   <button class="pill" id="tzb" aria-label="Vaqt zonasini tanlash"><svg class="ic"><use href="#i-globe"/></svg><span id="tzl"></span><svg class="ic s"><use href="#i-chev"/></svg></button>
+  <button class="thb" id="thb" aria-label="Mavzu"><svg class="thsu" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6"/></svg><svg class="thmo" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" fill-opacity=".18" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.2A8 8 0 019.8 4a8 8 0 1010.2 10.2z"/></svg></button>
 </header>
 
 <main>
@@ -125,9 +126,8 @@
     <div class="sw"><span>Kill zone va yangilikda ovoz + tebranish</span><label class="tg"><input type="checkbox" id="snd"><i></i></label></div>
     <label>Kill zone oldidan ogohlantirish<select id="pre"><option value="0">Yo‘q</option><option value="5">5 daqiqa</option><option value="10">10 daqiqa</option><option value="15">15 daqiqa</option></select></label>
     <div class="foot">Faqat ilova ochiq turganda ishlaydi.</div></section>
-  <section class="card"><h2>Mavzu</h2><div class="seg2 s3" id="th"><button data-v="auto">Avto</button><button data-v="light">Yorug‘</button><button data-v="dark">Qorong‘i</button></div></section>
 </div>
-<p class="foot" style="text-align:center">Bozor NY vaqti bilan juma 17:00 da yopilib, yakshanba 17:00 da ochiladi.<br><span id="cr">© 2026 Barcha huquqlar himoyalangan.</span> · <span id="ver">Versiya: v3.6.2</span> · Dizayn: Neumorphism</p>
+<p class="foot" style="text-align:center">Bozor NY vaqti bilan juma 17:00 da yopilib, yakshanba 17:00 da ochiladi.<br><span id="cr">© 2026 Barcha huquqlar himoyalangan.</span> · <span id="ver">Versiya: v3.6.3</span> · Dizayn: Neumorphism</p>
 </main>
 
 <nav id="nav" aria-label="Bo‘limlar">
@@ -179,6 +179,6 @@
   <button class="pri wide bbtn" id="nadd"><svg class="ic"><use href="#i-check"/></svg> Qo‘shish</button>
 </div></div>
 <div class="toast hide" id="toast"></div>
-<script src="app.js?v=3.6.2"></script>
+<script src="app.js?v=3.6.3"></script>
 </body>
 </html>

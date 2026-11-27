@@ -387,3 +387,14 @@ nav button.a .ic{background:var(--bg);box-shadow:var(--ins2)}
 .pbar>div:first-child{flex:none}
 .pbar>.foot{flex:1;min-width:0}
 .pbar .lbl,#pbig{white-space:nowrap}
+
+/* v3.6.3: ixcham sarlavha: soat · vaqt mintaqasi · mavzu (quyosh/oy) bir qatorda */
+.top{gap:6px}
+.clock{font-size:1.9rem;flex:none}
+#tzb{margin-left:auto;padding:8px 10px;font-size:.76rem;gap:6px;white-space:nowrap}
+#tzb .ic{width:16px;height:16px}
+.thb{position:relative;flex:none;width:38px;height:38px;padding:0;border-radius:50%;display:grid;place-items:center;color:#f59e0b}
+.thb .thmo{display:none;color:var(--nyam)}
+.thb.dk .thmo{display:block}.thb.dk .thsu{display:none}
+.thb.au::after{content:"A";position:absolute;right:-2px;bottom:-2px;width:15px;height:15px;border-radius:50%;background:var(--nyam);color:#fff;font-size:.58rem;font-weight:800;display:grid;place-items:center;line-height:1}
+.thb:active{box-shadow:var(--ins2)}

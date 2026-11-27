@@ -1,6 +1,6 @@
 "use strict";
 /* Ilova versiyasi: sw.js (VER) va index.html (?v=) bilan BIR XIL bo‘lishi shart */
-const APP_VER="v3.6.2";
+const APP_VER="v3.6.3";
 if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}
 const NY="America/New_York",$=id=>document.getElementById(id),pad=n=>String(n).padStart(2,"0");
 const ld=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
@@ -154,7 +154,6 @@ $("nadd").onclick=()=>{if(!$("nd").value||!$("ntm").value||!$("nt").value.trim()
 function tick(){
  const d=new Date(),loc=mins(d,tz),ny=mins(d,NY),inf=nyInfo(d),M=mkt(inf.dow,ny),diff=Math.round(loc-ny);
  $("clock").textContent=hm(loc)+":"+pad(Math.floor((loc%1)*60+1e-6));
- $("sub").textContent=hm(ny)+":"+pad(Math.floor((ny%1)*60+1e-6))+" · "+inf.date.split("-").reverse().join(".")+" · "+uo(NY);
  updChart(d,loc,ny,M);
  const a=M.open?KZ.find(k=>act(k,ny)):null,bn=$("ban"),b={style:bn.style,set innerHTML(h){if(bn._h!==h){bn._h=h;bn.innerHTML=h}}};
  if(!M.open){b.style.background="var(--mute)";b.innerHTML="<b>Bozor yopiq (dam olish kuni)</b><span>Ochilishiga "+dur(M.toOpen)+"</span>"}
@@ -174,8 +173,11 @@ const eSS=()=>edit($("sedit"),SS,"Ochilish","Yopilish",()=>{sv("ss",SS.map(y=>[y
 $("reset").onclick=()=>{KZ=JSON.parse(JSON.stringify(DEF));sv("kz",KZ);eKZ();buildTL();tick()};
 $("sreset").onclick=()=>{SSD.forEach((v,i)=>{SS[i].s=v[0];SS[i].e=v[1]});sv("ss",SSD);eSS();buildTL();tick()};
 function applyTh(){th==="auto"?document.documentElement.removeAttribute("data-theme"):document.documentElement.setAttribute("data-theme",th);
- try{const isD=th==="dark"||(th==="auto"&&!!window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches),m=document.querySelector("meta[name=theme-color]");if(m)m.content=isD?"#1b2230":"#e9edf3"}catch(e){}document.querySelectorAll("#th button").forEach(b=>b.classList.toggle("on",b.dataset.v===th))}
-document.querySelectorAll("#th button").forEach(b=>b.onclick=()=>{th=b.dataset.v;sv("th",th);applyTh()});
+ try{const isD=th==="dark"||(th==="auto"&&!!window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches),m=document.querySelector("meta[name=theme-color]");if(m)m.content=isD?"#1b2230":"#e9edf3"}catch(e){}thIcon()}
+/* v3.6.3: sarlavhadagi mavzu tugmasi: quyosh (yorug‘) / oy (qorong‘i). Avto rejimda tizim mavzusi ko‘rsatiladi va "A" belgisi chiqadi. */
+const THN={auto:"Avto",light:"Yorug‘",dark:"Qorong‘i"};
+function thIcon(){let d=th==="dark";if(th==="auto")try{d=matchMedia("(prefers-color-scheme: dark)").matches}catch(e){}const b=$("thb");b.classList.toggle("dk",d);b.classList.toggle("au",th==="auto");b.setAttribute("aria-label","Mavzu: "+THN[th])}
+$("thb").onclick=()=>{th={auto:"light",light:"dark",dark:"auto"}[th]||"auto";sv("th",th);applyTh();toast("Mavzu: "+THN[th])};
 try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{if(th==="auto")applyTh()})}catch(e){}
 
 /* ---- jurnal ---- */
