@@ -1,6 +1,6 @@
 "use strict";
 /* Ilova versiyasi: sw.js (VER) va index.html (?v=) bilan BIR XIL bo‘lishi shart */
-const APP_VER="v3.6.1";
+const APP_VER="v3.6.2";
 if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}
 const NY="America/New_York",$=id=>document.getElementById(id),pad=n=>String(n).padStart(2,"0");
 const ld=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
@@ -174,7 +174,7 @@ const eSS=()=>edit($("sedit"),SS,"Ochilish","Yopilish",()=>{sv("ss",SS.map(y=>[y
 $("reset").onclick=()=>{KZ=JSON.parse(JSON.stringify(DEF));sv("kz",KZ);eKZ();buildTL();tick()};
 $("sreset").onclick=()=>{SSD.forEach((v,i)=>{SS[i].s=v[0];SS[i].e=v[1]});sv("ss",SSD);eSS();buildTL();tick()};
 function applyTh(){th==="auto"?document.documentElement.removeAttribute("data-theme"):document.documentElement.setAttribute("data-theme",th);
- try{const isD=th==="dark"||(th==="auto"&&!!window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches),m=document.querySelector("meta[name=theme-color]");if(m)m.content=isD?"#0b121b":"#f4f6f9"}catch(e){}document.querySelectorAll("#th button").forEach(b=>b.classList.toggle("on",b.dataset.v===th))}
+ try{const isD=th==="dark"||(th==="auto"&&!!window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches),m=document.querySelector("meta[name=theme-color]");if(m)m.content=isD?"#1b2230":"#e9edf3"}catch(e){}document.querySelectorAll("#th button").forEach(b=>b.classList.toggle("on",b.dataset.v===th))}
 document.querySelectorAll("#th button").forEach(b=>b.onclick=()=>{th=b.dataset.v;sv("th",th);applyTh()});
 try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{if(th==="auto")applyTh()})}catch(e){}
 
@@ -337,10 +337,16 @@ function series(){const days=mapDays(),tk=todayK(),L=[];let c=0;
  if(cm==="m"){const d=D(tk);for(let i=11;i>=0;i--){const q=K(new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()-i,1))).slice(0,7);Object.keys(days).forEach(k=>{if(k.slice(0,7)===q)c+=days[k].s});L.push({k:q+"-01",v:c})}return{L,sub:"Oxirgi 12 oy"}}
  trades.slice().sort((a,b)=>tms(a)-tms(b)).forEach(t=>{c+=val(t);L.push({k:dk(tms(t)),v:c})});return{L,sub:"Barcha savdolar"}}
 function ticks(lo,hi,n){const raw=(hi-lo)/n,mg=Math.pow(10,Math.floor(Math.log10(raw))),f=raw/mg,st=(f<=1?1:f<=2?2:f<=5?5:10)*mg,t=[];for(let v=Math.ceil(lo/st)*st;v<=hi+1e-9;v+=st)t.push(Math.round(v/st)*st);return t}
-function drawPnl(){const{L,sub}=series(),el=$("pnl"),n=L.length,last=n?L[n-1].v:0;let pk_=0,mdd=0;
+/* v3.6.2: P&L va Drawdown grafigi uchun alohida birlik: R (Risk Reward) yoki $ (foyda/zarar).
+   Faqat shu grafik uchun mt vaqtincha almashtiriladi, qolgan hisob-kitoblar (val, fv, series, mapDays) o‘zgarmagan. */
+let pm=ld("pm",mt);if(pm!=="r"&&pm!=="u")pm="r";
+const pmx=f=>{const o=mt;mt=pm;try{return f()}finally{mt=o}};
+$("pmt").onclick=e=>{const b=e.target.closest("button");if(!b||!b.dataset.v||b.dataset.v===pm)return;pm=b.dataset.v;sv("pm",pm);$("ptip").classList.add("hide");drawPnl()};
+function drawPnl(){document.querySelectorAll("#pmt button").forEach(b=>b.classList.toggle("on",b.dataset.v===pm));
+ const fp=(v,g)=>pmx(()=>fv(v,g)),{L,sub}=pmx(series),el=$("pnl"),n=L.length,last=n?L[n-1].v:0;let pk_=0,mdd=0;
  const dd=L.map(p=>{pk_=Math.max(pk_,p.v);const x=p.v-pk_;mdd=Math.min(mdd,x);return x});
- $("pbig").textContent=fv(last,1);$("pbig").className="big "+cl(last);$("psub").textContent=sub;$("pmdd").textContent="Maks. drawdown: "+fv(mdd);
- if(n<2||L.every(p=>p.v===0)){el.innerHTML='<div class="mute">Grafik uchun savdo ma’lumoti kerak.</div>';$("ddc").innerHTML="";return}
+ $("pbig").textContent=fp(last,1);$("pbig").className="big "+cl(last);$("psub").textContent=sub;$("pmdd").textContent="Maks. drawdown: "+fp(mdd);
+ if(n<2||L.every(p=>p.v===0)){el.innerHTML='<div class="mute">'+(pm==="u"?"Grafik uchun P&amp;L ($) kiritilgan savdolar kerak.":"Grafik uchun savdo ma’lumoti kerak.")+'</div>';$("ddc").innerHTML="";return}
  const W=Math.max(260,el.clientWidth||320),H=210,Lm=40,Rm=10,Tm=10,Bm=22,vs=L.map(p=>p.v);let lo=Math.min(0,...vs),hi=Math.max(0,...vs);const sp_=(hi-lo)||1;lo-=sp_*.06;hi+=sp_*.06;
  const X=i=>Lm+i*(W-Lm-Rm)/(n-1),Y=v=>Tm+(hi-v)*(H-Tm-Bm)/(hi-lo),y0=Y(0),tk=ticks(lo,hi,4),f=v=>Math.abs(v)>=1000?(v/1000).toFixed(1)+"k":(Number.isInteger(v)?v:v.toFixed(1)),lab=p=>cm==="m"?MS[+p.k.slice(5,7)-1]:p.k.slice(8,10)+"."+p.k.slice(5,7);
  const ln=L.map((p,i)=>(i?"L":"M")+X(i).toFixed(1)+" "+Y(p.v).toFixed(1)).join(" "),ar=ln+" L"+X(n-1).toFixed(1)+" "+y0.toFixed(1)+" L"+X(0).toFixed(1)+" "+y0.toFixed(1)+"Z";
@@ -354,7 +360,7 @@ function drawPnl(){const{L,sub}=series(),el=$("pnl"),n=L.length,last=n?L[n-1].v:
   +'<line id="pcl" y1="'+Tm+'" y2="'+(H-Bm)+'" style="stroke:var(--mute);display:none" stroke-dasharray="3 3"/><circle id="pcc" r="5" style="fill:var(--card);stroke:var(--ink);display:none" stroke-width="2"/></svg>';
  const mv=e=>{const r=el.getBoundingClientRect(),x=(e.clientX-r.left)*W/r.width,i=Math.max(0,Math.min(n-1,Math.round((x-Lm)/((W-Lm-Rm)/(n-1))))),p=L[i],cx=X(i),a=$("pcl"),b=$("pcc"),tp=$("ptip");
   a.setAttribute("x1",cx);a.setAttribute("x2",cx);a.style.display="";b.setAttribute("cx",cx);b.setAttribute("cy",Y(p.v));b.style.display="";
-  tp.textContent=lab(p)+" · "+fv(p.v,1)+" · DD "+fv(dd[i]);tp.classList.remove("hide");tp.style.left=Math.max(70,Math.min(r.width-70,cx*r.width/W))+"px"};
+  tp.textContent=lab(p)+" · "+fp(p.v,1)+" · DD "+fp(dd[i]);tp.classList.remove("hide");tp.style.left=Math.max(70,Math.min(r.width-70,cx*r.width/W))+"px"};
  el.onpointermove=mv;el.onpointerdown=mv;
  const H2=72,mn=Math.min(...dd),Y2=v=>6+(v/(mn*1.15))*(H2-14),d2=dd.map((v,i)=>(i?"L":"M")+X(i).toFixed(1)+" "+Y2(v).toFixed(1)).join(" ");
  $("ddc").innerHTML=mdd<0?'<svg viewBox="0 0 '+W+" "+H2+'" width="'+W+'" height="'+H2+'"><path d="'+d2+" L"+X(n-1).toFixed(1)+" 6 L"+X(0).toFixed(1)+' 6Z" style="fill:#dc2626;fill-opacity:.28"/><path d="'+d2+'" fill="none" style="stroke:#dc2626" stroke-width="1.8" stroke-linejoin="round"/><line x1="'+Lm+'" x2="'+(W-Rm)+'" y1="6" y2="6" style="stroke:var(--mute)"/><text x="'+(Lm-6)+'" y="10" text-anchor="end" class="ax">0</text><text x="'+(Lm-6)+'" y="'+(Y2(mn)+3).toFixed(1)+'" text-anchor="end" class="ax">'+f(+mn.toFixed(2))+"</text></svg>":'<div class="mute">Bu davrda drawdown bo‘lmagan.</div>'}

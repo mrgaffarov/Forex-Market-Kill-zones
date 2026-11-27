@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0b121b">
+<meta name="theme-color" content="#1b2230">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=3.6.1">
+<link rel="stylesheet" href="style.css?v=3.6.2">
 <title>Forex Kill Zone</title>
 </head>
 <body>
@@ -65,6 +65,7 @@
   <div class="foot" id="sjn" style="margin:0 2px 8px"></div>
   <section class="card"><div class="ch2"><h2>Win rate <small id="wrp"></small></h2><button class="fp sm" id="fp5"><b id="fv5"></b><svg class="ic s"><use href="#i-chev"/></svg></button></div><div class="wr"><div id="dn"></div><div id="leg"></div></div><div class="kpis" id="kpi"></div><div class="vd" id="wvd"></div><div class="spk" id="wsp"></div></section>
   <section class="card"><div class="ch2"><h2>P&amp;L va Drawdown</h2><button class="fp sm" id="fp3"><b id="fv3"></b><svg class="ic s"><use href="#i-chev"/></svg></button></div>
+    <div class="seg2 pmt" id="pmt" role="group" aria-label="Grafik birligi"><button data-v="r">Risk Reward (R)</button><button data-v="u">Foyda · Zarar ($)</button></div>
     <div class="pbar"><div><span class="lbl" style="margin:0">Jami P&amp;L (davr)</span><div class="big" id="pbig"></div></div><div class="foot"><span id="pmdd"></span><br><span id="psub"></span></div></div>
     <div class="pw"><div class="ptip hide" id="ptip"></div><div id="pnl"></div></div>
     <span class="lbl" style="margin:10px 0 2px">Drawdown (cho‘qqidan pasayish)</span><div id="ddc"></div></section>
@@ -126,7 +127,7 @@
     <div class="foot">Faqat ilova ochiq turganda ishlaydi.</div></section>
   <section class="card"><h2>Mavzu</h2><div class="seg2 s3" id="th"><button data-v="auto">Avto</button><button data-v="light">Yorug‘</button><button data-v="dark">Qorong‘i</button></div></section>
 </div>
-<p class="foot" style="text-align:center">Bozor NY vaqti bilan juma 17:00 da yopilib, yakshanba 17:00 da ochiladi.<br><span id="cr">© 2026 Barcha huquqlar himoyalangan.</span> · <span id="ver">Versiya: v3.6.1</span></p>
+<p class="foot" style="text-align:center">Bozor NY vaqti bilan juma 17:00 da yopilib, yakshanba 17:00 da ochiladi.<br><span id="cr">© 2026 Barcha huquqlar himoyalangan.</span> · <span id="ver">Versiya: v3.6.2</span> · Dizayn: Neumorphism</p>
 </main>
 
 <nav id="nav" aria-label="Bo‘limlar">
@@ -178,6 +179,6 @@
   <button class="pri wide bbtn" id="nadd"><svg class="ic"><use href="#i-check"/></svg> Qo‘shish</button>
 </div></div>
 <div class="toast hide" id="toast"></div>
-<script src="app.js?v=3.6.1"></script>
+<script src="app.js?v=3.6.2"></script>
 </body>
 </html>

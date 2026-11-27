@@ -1,9 +1,16 @@
-:root{--bg:#f4f6f9;--card:#fff;--ink:#0f1b2a;--mute:#64748b;--line:#e3e8ef;--on:#0f9d6b;--bad:#dc3a4f;--soft:#e5f6ef;
---asia:#7a5cd6;--lon:#d98a00;--nyam:#2563eb;--nypm:#d6456b;--sh:0 1px 2px rgba(15,27,42,.06),0 4px 14px rgba(15,27,42,.05);
+/* Forex Kill Zone v3.6.2 · dizayn: NEUMORPHISM
+   Fon va kartalar bir xil rangda; hajm ikki xil yumshoq soya bilan beriladi:
+   --sh/--shs/--shx = bo‘rtib chiqqan (katta/o‘rta/kichik), --ins/--ins2 = botgan. */
+:root{--bg:#e9edf3;--card:#e9edf3;--ink:#1f2a3c;--mute:#5b6a80;--line:#d3dae5;--on:#0f9d6b;--bad:#dc3a4f;--soft:#d9efe5;--asia:#7a5cd6;--lon:#d98a00;--nyam:#2158d9;--nypm:#d6456b;--nd:rgba(163,177,198,.65);--nl:rgba(255,255,255,.95);
+--sh:6px 6px 12px var(--nd),-6px -6px 12px var(--nl);
+--shs:4px 4px 8px var(--nd),-4px -4px 8px var(--nl);
+--shx:2px 2px 5px var(--nd),-2px -2px 5px var(--nl);
+--ins:inset 4px 4px 8px var(--nd),inset -4px -4px 8px var(--nl);
+--ins2:inset 2px 2px 5px var(--nd),inset -2px -2px 5px var(--nl);
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
-@media(prefers-color-scheme:dark){:root{--bg:#0b121b;--card:#131d2a;--ink:#e9eef5;--mute:#8b9bb0;--line:#223144;--on:#3ddc9f;--bad:#ff6b7f;--soft:#12302a;--asia:#a58bff;--lon:#ffb43b;--nyam:#5aa2ff;--nypm:#ff7a9c;--sh:none}}
-:root[data-theme=dark]{--bg:#0b121b;--card:#131d2a;--ink:#e9eef5;--mute:#8b9bb0;--line:#223144;--on:#3ddc9f;--bad:#ff6b7f;--soft:#12302a;--asia:#a58bff;--lon:#ffb43b;--nyam:#5aa2ff;--nypm:#ff7a9c;--sh:none}
-:root[data-theme=light]{--bg:#f4f6f9;--card:#fff;--ink:#0f1b2a;--mute:#64748b;--line:#e3e8ef;--on:#0f9d6b;--bad:#dc3a4f;--soft:#e5f6ef;--asia:#7a5cd6;--lon:#d98a00;--nyam:#2563eb;--nypm:#d6456b;--sh:0 1px 2px rgba(15,27,42,.06),0 4px 14px rgba(15,27,42,.05)}
+@media(prefers-color-scheme:dark){:root{--bg:#1b2230;--card:#1b2230;--ink:#e6ecf5;--mute:#8d9bb0;--line:#2b3547;--on:#3ddc9f;--bad:#ff6b7f;--soft:#1d3a35;--asia:#a58bff;--lon:#ffb43b;--nyam:#5aa2ff;--nypm:#ff7a9c;--nd:rgba(8,11,17,.78);--nl:rgba(60,74,98,.42)}}
+:root[data-theme=dark]{--bg:#1b2230;--card:#1b2230;--ink:#e6ecf5;--mute:#8d9bb0;--line:#2b3547;--on:#3ddc9f;--bad:#ff6b7f;--soft:#1d3a35;--asia:#a58bff;--lon:#ffb43b;--nyam:#5aa2ff;--nypm:#ff7a9c;--nd:rgba(8,11,17,.78);--nl:rgba(60,74,98,.42)}
+:root[data-theme=light]{--bg:#e9edf3;--card:#e9edf3;--ink:#1f2a3c;--mute:#5b6a80;--line:#d3dae5;--on:#0f9d6b;--bad:#dc3a4f;--soft:#d9efe5;--asia:#7a5cd6;--lon:#d98a00;--nyam:#2158d9;--nypm:#d6456b;--nd:rgba(163,177,198,.65);--nl:rgba(255,255,255,.95)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.45 Inter,system-ui,Roboto,"Segoe UI",sans-serif;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
 .hide{display:none!important}
@@ -308,3 +315,75 @@ button.dng{color:var(--bad);border-color:rgba(220,58,79,.45);background:none}
 .rh .lotv{margin:0;font-size:2.3rem}.rh .rrow{margin:6px 0 0}.rh .rrow div{padding:6px 4px}.rh .warn{margin:8px 0 0!important}
 .rt .rtr{padding:7px 12px}.rt .rth{padding:6px 12px}
 @media(max-width:340px){.rcc .ch{font-size:.66rem;letter-spacing:-.02em}.rcr input{padding:4px 6px;font-size:.84rem}.whl{width:44px}}
+
+/* ===================== v3.6.2 · NEUMORPHISM (qatlam) ===================== */
+main{padding-left:16px;padding-right:16px}
+.card{border:0;border-radius:22px;box-shadow:var(--sh)}
+.card.rh{border:0;border-top:4px solid var(--line)}
+.card.rh.lv1{border-top-color:#16a34a}.card.rh.lv2{border-top-color:#3b82f6}.card.rh.lv3{border-top-color:#f59e0b}.card.rh.lv4{border-top-color:#dc2626}
+.ban{box-shadow:var(--sh)}
+.empty{border:0;box-shadow:var(--ins)}
+
+/* tugmalar: bo‘rtib chiqqan, bosilganda botadi */
+button{border:0;box-shadow:var(--shs);transition:box-shadow .15s,background .15s,color .15s}
+nav button,.x,.cx,.seg2 button,.seg4 button,.seg3 button,.sub3 button{box-shadow:none}
+.pill:active,.fp:active,.chip2:active,.nv:active,.ibtn:active,.fld:active,.zr:active,.mini:active,.cd:active,.ch:active,button.wide:active,.bbtn:active,.sq:active,#exp:active,#imp:active{box-shadow:var(--ins2)}
+button.pri{box-shadow:var(--shs),0 6px 14px -4px rgba(33,88,217,.45)}
+button.pri:active{box-shadow:inset 3px 3px 7px rgba(0,0,0,.3)}
+.cd,.mini,.ib,.lc,.tl3{box-shadow:var(--shx)}
+.ib{background:var(--bg)}
+.ch{border:0;box-shadow:var(--shx)}
+.ch.on{box-shadow:0 3px 8px rgba(33,88,217,.35)}.ch.bad.on{box-shadow:0 3px 8px rgba(220,58,79,.35)}
+
+/* kiritish maydonlari: botgan */
+input,select,textarea,.ta{border:0;box-shadow:var(--ins2)}
+input[type=checkbox]{box-shadow:none}
+.pre{border:0;box-shadow:var(--ins2)}
+.pre input,.ai{box-shadow:none}
+.ai{background:transparent}
+
+/* segmentlar: botgan pastak ichida bo‘rtgan faol tugma */
+.seg2,.seg4,.seg3,.jhd .seg2{border:0;box-shadow:var(--ins2)}
+.seg2 button.on,.seg4 button.on{background:var(--card);color:var(--nyam);box-shadow:var(--shs)}
+.sub3{border:0;box-shadow:var(--ins)}
+
+/* almashtirgich */
+.tg i{background:var(--bg);box-shadow:var(--ins2)}
+.tg i::after{box-shadow:var(--shx)}
+.tg input:checked+i{box-shadow:inset 2px 2px 5px rgba(0,0,0,.25),inset -2px -2px 5px rgba(255,255,255,.18)}
+
+/* pastki menyu */
+nav{border-top:0;border-radius:22px 22px 0 0;box-shadow:0 -6px 16px var(--nd)}
+nav button.a .ic{background:var(--bg);box-shadow:var(--ins2)}
+
+/* oynalar va ro‘yxatlar */
+.sp{box-shadow:0 -10px 30px rgba(0,0,0,.22)}
+.zr.sel{background:var(--card);box-shadow:var(--ins2)}
+.zc{border:0;box-shadow:var(--ins2)}
+.ev2{border:0}
+.ev3>div,.ev2 .ev3>div{box-shadow:var(--ins2)}
+.kpis div,.cmp div,.gstats div,.rrow div{box-shadow:var(--ins2)}
+.tk,.bt,.abb,.bar,.rt{box-shadow:var(--ins2)}
+.rt{border:0}
+
+/* risk kalkulyatori */
+.rc{border:0;box-shadow:var(--shs)}
+.whl{border:0;box-shadow:var(--ins2)}
+
+/* savdo natijasi tanlovi (TP / SL / Breakeven) */
+.tpsl button{border:0;box-shadow:var(--shs)}
+.tpsl button[data-v=w].on{border:0;background:transparent;color:#16a34a;box-shadow:var(--ins2)}
+.tpsl button[data-v=l].on{border:0;background:transparent;color:#dc2626;box-shadow:var(--ins2)}
+.tpsl button[data-v=d].on{border:0;background:transparent;color:var(--ink);box-shadow:var(--ins2)}
+
+/* P&L va Drawdown: R / $ almashtirgich va grafik paneli */
+.pmt{margin:0 0 12px}
+.pmt button{font-size:.8rem;padding:8px 4px}
+#pnl,#ddc{border-radius:16px;box-shadow:var(--ins2);overflow:hidden}
+#pnl svg,#ddc svg{display:block}
+#pnl .mute,#ddc .mute{padding:14px}
+#ddc{margin-top:6px}
+/* "Jami P&L" qiymati ($ rejimida ham) bir qatorda qolsin */
+.pbar>div:first-child{flex:none}
+.pbar>.foot{flex:1;min-width:0}
+.pbar .lbl,#pbig{white-space:nowrap}
